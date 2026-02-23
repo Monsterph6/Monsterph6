@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gia phả và Văn khấn</title>
+    <style>
+      :root { font-family: Arial, sans-serif; }
+      body { margin: 0; padding: 20px; background: #f3f5f9; }
+      .container { max-width: 1100px; margin: 0 auto; }
+      h1 { margin-top: 0; }
+      .card { background: white; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+      .tabs { display:flex; gap:8px; margin-bottom:12px; }
+      .tab { border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
+      .tab.active { background:#2f6fed; color:white; }
+      .hidden { display:none; }
+      .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px; }
+      label { display:block; font-size:13px; margin-bottom:4px; color:#444; }
+      input, textarea, select { width:100%; box-sizing:border-box; padding:8px; border:1px solid #ccd3df; border-radius:6px; }
+      textarea { min-height:100px; }
+      button.primary { margin-top:10px; border:none; background:#2f6fed; color:white; border-radius:8px; padding:10px 14px; cursor:pointer; }
+      table { width:100%; border-collapse: collapse; }
+      th, td { border-bottom:1px solid #e4e8f0; text-align:left; padding:8px; vertical-align:top; }
+      .tree ul { list-style:none; padding-left:16px; }
+      .tree-node { margin:6px 0; padding-left:8px; border-left:2px solid #c7d5f7; }
+      .muted { color:#63708c; font-size:13px; }
+      .status { margin-top:8px; font-size:13px; }
+      .date-row { display:grid; grid-template-columns: 120px 1fr; gap:8px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Ứng dụng Gia phả & Văn khấn (Google Apps Script + Sheets)</h1>
+
+      <div class="tabs">
+        <button class="tab active" data-target="gia-pha">Gia phả</button>
+        <button class="tab" data-target="van-khan">Văn khấn</button>
+      </div>
+
+      <section id="gia-pha" class="card">
+        <h2>Thêm thành viên gia phả</h2>
+        <div class="grid">
+          <div>
+            <label for="hoTen">Họ và tên *</label>
+            <input id="hoTen" />
+          </div>
+          <div>
+            <label for="gioiTinh">Giới tính</label>
+            <select id="gioiTinh">
+              <option value="">-- Chọn --</option>
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+          <div>
+            <label>Ngày sinh</label>
+            <div class="date-row">
+              <select id="ngaySinhLoai">
+                <option value="duong">Dương</option>
+                <option value="am">Âm</option>
+              </select>
+              <input id="ngaySinhInput" type="date" />
+            </div>
+          </div>
+          <div>
+            <label>Ngày mất</label>
+            <div class="date-row">
+              <select id="ngayMatLoai">
+                <option value="duong">Dương</option>
+                <option value="am">Âm</option>
+              </select>
+              <input id="ngayMatInput" type="date" />
+            </div>
+          </div>
+          <div>
+            <label for="idCha">Cha (ID - Tên)</label>
+            <select id="idCha"></select>
+          </div>
+          <div>
+            <label for="idMe">Mẹ (ID - Tên)</label>
+            <select id="idMe"></select>
+          </div>
+        </div>
+        <div>
+          <label for="ghiChuThanhVien">Ghi chú</label>
+          <textarea id="ghiChuThanhVien"></textarea>
+        </div>
+        <div class="muted">Bạn có thể nhập theo lịch Âm hoặc Dương, hệ thống sẽ tự quy đổi và lưu cả 2 loại ngày.</div>
+        <button class="primary" id="btnThemThanhVien">Lưu thành viên</button>
+        <div id="statusThanhVien" class="status muted"></div>
+
+        <h3>Danh sách thành viên</h3>
+        <div class="muted">Danh sách Cha/Mẹ sẽ tự hiển thị theo định dạng ID - Tên.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Họ tên</th>
+              <th>Thông tin</th>
+              <th>Cha/Mẹ</th>
+            </tr>
+          </thead>
+          <tbody id="membersBody"></tbody>
+        </table>
+
+        <h3>Sơ đồ gia phả</h3>
+        <div id="familyTree" class="tree"></div>
+      </section>
+
+      <section id="van-khan" class="card hidden">
+        <h2>Thêm bài văn khấn</h2>
+        <div class="grid">
+          <div>
+            <label for="tieuDe">Tiêu đề *</label>
+            <input id="tieuDe" />
+          </div>
+          <div>
+            <label for="chuDe">Chủ đề</label>
+            <input id="chuDe" />
+          </div>
+        </div>
+        <div>
+          <label for="noiDung">Nội dung *</label>
+          <textarea id="noiDung"></textarea>
+        </div>
+        <div>
+          <label for="ghiChuVanKhan">Ghi chú</label>
+          <textarea id="ghiChuVanKhan"></textarea>
+        </div>
+        <button class="primary" id="btnThemVanKhan">Lưu văn khấn</button>
+        <div id="statusVanKhan" class="status muted"></div>
+
+        <h3>Danh sách văn khấn</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Tiêu đề</th>
+              <th>Chủ đề</th>
+              <th>Nội dung</th>
+            </tr>
+          </thead>
+          <tbody id="prayersBody"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script>
+      const state = { members: [], prayers: [], familyTree: [] };
+
+      document.querySelectorAll('.tab').forEach((button) => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
+          button.classList.add('active');
+          document.getElementById('gia-pha').classList.add('hidden');
+          document.getElementById('van-khan').classList.add('hidden');
+          document.getElementById(button.dataset.target).classList.remove('hidden');
+        });
+      });
+
+      function withServer(funcName, payload) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler((error) => reject(error && error.message ? error.message : String(error)))[funcName](payload);
+        });
+      }
+
+      async function loadData() {
+        const data = await withServer('getInitialData');
+        state.members = data.members || [];
+        state.prayers = data.prayers || [];
+        state.familyTree = data.familyTree || [];
+        renderParentOptions();
+        renderMembers();
+        renderPrayers();
+        renderFamilyTree();
+      }
+
+
+      function renderParentOptions() {
+        const fatherSelect = document.getElementById('idCha');
+        const motherSelect = document.getElementById('idMe');
+
+        const currentFather = fatherSelect.value || '';
+        const currentMother = motherSelect.value || '';
+
+        const options = ['<option value="">-- Không chọn --</option>']
+          .concat(
+            state.members.map((member) =>
+              `<option value="${escapeHtml(member.id)}">${escapeHtml(member.id)} - ${escapeHtml(member.hoTen || 'Không tên')}</option>`
+            )
+          )
+          .join('');
+
+        fatherSelect.innerHTML = options;
+        motherSelect.innerHTML = options;
+
+        fatherSelect.value = state.members.some((member) => member.id === currentFather) ? currentFather : '';
+        motherSelect.value = state.members.some((member) => member.id === currentMother) ? currentMother : '';
+      }
+
+      function getMemberDisplayById(memberId) {
+        if (!memberId) {
+          return '-';
+        }
+
+        const member = state.members.find((item) => item.id === memberId);
+        if (!member) {
+          return memberId;
+        }
+
+        return `${member.id} - ${member.hoTen || 'Không tên'}`;
+      }
+
+      function renderMembers() {
+        const body = document.getElementById('membersBody');
+        body.innerHTML = '';
+
+        state.members.forEach((member) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><code>${member.id}</code></td>
+            <td>${escapeHtml(member.hoTen)}</td>
+            <td>
+              Giới tính: ${escapeHtml(member.gioiTinh || '-')}<br>
+              Sinh (Dương): ${escapeHtml(member.ngaySinhDuong || '-')}<br>
+              Sinh (Âm): ${escapeHtml(member.ngaySinhAm || '-')}<br>
+              Mất (Dương): ${escapeHtml(member.ngayMatDuong || '-')}<br>
+              Mất (Âm): ${escapeHtml(member.ngayMatAm || '-')}
+            </td>
+            <td>Cha: <code>${escapeHtml(getMemberDisplayById(member.idCha))}</code><br>Mẹ: <code>${escapeHtml(getMemberDisplayById(member.idMe))}</code></td>
+          `;
+          body.appendChild(row);
+        });
+      }
+
+      function renderPrayers() {
+        const body = document.getElementById('prayersBody');
+        body.innerHTML = '';
+        state.prayers.forEach((prayer) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${escapeHtml(prayer.tieuDe)}</td>
+            <td>${escapeHtml(prayer.chuDe || '-')}</td>
+            <td style="white-space: pre-wrap">${escapeHtml(prayer.noiDung)}</td>
+          `;
+          body.appendChild(row);
+        });
+      }
+
+      function renderFamilyTree() {
+        const root = document.getElementById('familyTree');
+        root.innerHTML = '';
+
+        if (!state.familyTree.length) {
+          root.innerHTML = '<div class="muted">Chưa có dữ liệu gia phả.</div>';
+          return;
+        }
+
+        const ul = document.createElement('ul');
+        state.familyTree.forEach((node) => ul.appendChild(renderNode(node)));
+        root.appendChild(ul);
+      }
+
+      function renderNode(node) {
+        const li = document.createElement('li');
+        li.className = 'tree-node';
+        li.innerHTML = `<strong>${escapeHtml(node.hoTen)}</strong> <span class="muted">(Dương: ${escapeHtml(node.ngaySinhDuong || '?')} - ${escapeHtml(node.ngayMatDuong || '')}; Âm: ${escapeHtml(node.ngaySinhAm || '?')} - ${escapeHtml(node.ngayMatAm || '')})</span>`;
+
+        if (node.children && node.children.length) {
+          const ul = document.createElement('ul');
+          node.children.forEach((child) => ul.appendChild(renderNode(child)));
+          li.appendChild(ul);
+        }
+
+        return li;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      document.getElementById('btnThemThanhVien').addEventListener('click', async () => {
+        const status = document.getElementById('statusThanhVien');
+        status.textContent = 'Đang lưu...';
+
+        try {
+          await withServer('addMember', {
+            hoTen: document.getElementById('hoTen').value.trim(),
+            gioiTinh: document.getElementById('gioiTinh').value,
+            ngaySinhLoai: document.getElementById('ngaySinhLoai').value,
+            ngaySinhInput: document.getElementById('ngaySinhInput').value,
+            ngayMatLoai: document.getElementById('ngayMatLoai').value,
+            ngayMatInput: document.getElementById('ngayMatInput').value,
+            idCha: document.getElementById('idCha').value.trim(),
+            idMe: document.getElementById('idMe').value.trim(),
+            ghiChu: document.getElementById('ghiChuThanhVien').value.trim(),
+          });
+
+          status.textContent = 'Đã lưu thành viên.';
+          await loadData();
+        } catch (error) {
+          status.textContent = `Lỗi: ${error}`;
+        }
+      });
+
+      document.getElementById('btnThemVanKhan').addEventListener('click', async () => {
+        const status = document.getElementById('statusVanKhan');
+        status.textContent = 'Đang lưu...';
+
+        try {
+          await withServer('addPrayer', {
+            tieuDe: document.getElementById('tieuDe').value.trim(),
+            chuDe: document.getElementById('chuDe').value.trim(),
+            noiDung: document.getElementById('noiDung').value.trim(),
+            ghiChu: document.getElementById('ghiChuVanKhan').value.trim(),
+          });
+
+          status.textContent = 'Đã lưu văn khấn.';
+          await loadData();
+        } catch (error) {
+          status.textContent = `Lỗi: ${error}`;
+        }
+      });
+
+      loadData().catch((error) => {
+        document.body.insertAdjacentHTML('beforeend', `<p class="status">Không tải được dữ liệu: ${escapeHtml(error)}</p>`);
+      });
+    </script>
+  </body>
+</html>
