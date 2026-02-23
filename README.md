@@ -4,6 +4,7 @@
 
 ## Chức năng
 
+- Setup môi trường tự động: nếu chưa có sheet thì tạo mới + tạo header; nếu đã có thì giữ nguyên dữ liệu hiện tại và chỉ thêm các header còn thiếu vào cột phía sau.
 - Quản lý **thành viên gia phả**: thêm người, lưu quan hệ cha/mẹ qua ID, xem danh sách và cây gia phả.
 - Khi chọn cha/mẹ trong form, hệ thống hiển thị theo định dạng **ID - Tên** để dễ chọn, nhưng vẫn lưu ID chuẩn vào Sheet.
 - Ở phần ngày sinh/ngày mất có thể chọn nhập theo **Âm lịch** hoặc **Dương lịch**; hệ thống tự chuyển đổi và lưu **đồng thời cả ngày Âm + ngày Dương**.

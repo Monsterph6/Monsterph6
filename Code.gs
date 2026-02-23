@@ -79,19 +79,18 @@ function addMember(payload) {
 
   const sheet = getSheet_(SHEET_MEMBERS, MEMBER_HEADERS);
   const id = createId_();
-  const row = [
+  appendRecord_(sheet, {
     id,
-    payload.hoTen || '',
-    ngaySinh.duong,
-    ngaySinh.am,
-    ngayMat.duong,
-    ngayMat.am,
-    payload.gioiTinh || '',
-    payload.idCha || '',
-    payload.idMe || '',
-    payload.ghiChu || '',
-  ];
-  sheet.appendRow(row);
+    hoTen: payload.hoTen || '',
+    ngaySinhDuong: ngaySinh.duong,
+    ngaySinhAm: ngaySinh.am,
+    ngayMatDuong: ngayMat.duong,
+    ngayMatAm: ngayMat.am,
+    gioiTinh: payload.gioiTinh || '',
+    idCha: payload.idCha || '',
+    idMe: payload.idMe || '',
+    ghiChu: payload.ghiChu || '',
+  });
 
   return { ok: true, id };
 }
@@ -102,8 +101,13 @@ function addPrayer(payload) {
 
   const sheet = getSheet_(SHEET_PRAYERS, PRAYER_HEADERS);
   const id = createId_();
-  const row = [id, payload.tieuDe || '', payload.chuDe || '', payload.noiDung || '', payload.ghiChu || ''];
-  sheet.appendRow(row);
+  appendRecord_(sheet, {
+    id,
+    tieuDe: payload.tieuDe || '',
+    chuDe: payload.chuDe || '',
+    noiDung: payload.noiDung || '',
+    ghiChu: payload.ghiChu || '',
+  });
 
   return { ok: true, id };
 }
@@ -144,25 +148,46 @@ function getSheet_(name, headers) {
   }
 
   if (headers && headers.length > 0) {
-    const lastCol = Math.max(sheet.getLastColumn(), headers.length);
-    const existing = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map((cell) => String(cell || ''));
-    const isBlank = existing.every((cell) => cell === '');
-
-    if (isBlank) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.setFrozenRows(1);
-    } else {
-      const existingNonBlank = existing.filter((cell) => cell !== '');
-      const canMigrate = existingNonBlank.every((cell) => headers.indexOf(cell) >= 0);
-      if (!canMigrate) {
-        throw new Error(`Sheet ${name} có header không tương thích. Vui lòng kiểm tra lại cột.`);
-      }
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.setFrozenRows(1);
-    }
+    ensureSheetHeaders_(sheet, headers);
   }
 
   return sheet;
+}
+
+function ensureSheetHeaders_(sheet, expectedHeaders) {
+  const lastCol = sheet.getLastColumn();
+
+  if (lastCol === 0) {
+    sheet.getRange(1, 1, 1, expectedHeaders.length).setValues([expectedHeaders]);
+    sheet.setFrozenRows(1);
+    return;
+  }
+
+  const currentHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map((cell) => String(cell || '').trim());
+  const existingHeaderSet = {};
+
+  currentHeaders.forEach((header) => {
+    if (header) {
+      existingHeaderSet[header] = true;
+    }
+  });
+
+  const missingHeaders = expectedHeaders.filter((header) => !existingHeaderSet[header]);
+
+  if (missingHeaders.length > 0) {
+    sheet.insertColumnsAfter(lastCol, missingHeaders.length);
+    sheet.getRange(1, lastCol + 1, 1, missingHeaders.length).setValues([missingHeaders]);
+  }
+
+  sheet.setFrozenRows(1);
+}
+
+
+function appendRecord_(sheet, record) {
+  const lastCol = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map((cell) => String(cell || '').trim());
+  const row = headers.map((header) => (header ? record[header] || '' : ''));
+  sheet.appendRow(row);
 }
 
 function readRows_(sheet) {
