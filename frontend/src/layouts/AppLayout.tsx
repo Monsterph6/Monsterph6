@@ -6,6 +6,7 @@ import {
   TeamOutlined,
   ScheduleOutlined,
   SwapOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Typography } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ export function AppLayout() {
     { key: "/equipment", icon: <ToolOutlined />, label: "Thiết bị" },
     { key: "/maintenance", icon: <ScheduleOutlined />, label: "Lịch bảo trì/hiệu chuẩn" },
     { key: "/borrow", icon: <SwapOutlined />, label: "Mượn/trả thiết bị" },
+    { key: "/reports", icon: <FileTextOutlined />, label: "Báo cáo" },
     ...(user?.role === "admin"
       ? [
           { key: "/departments", icon: <ApartmentOutlined />, label: "Phòng ban" },

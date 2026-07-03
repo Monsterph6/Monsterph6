@@ -9,7 +9,9 @@ bệnh tật Hải Phòng): equipment catalog, maintenance/calibration schedulin
 tracking, user management with RBAC, and Excel/PDF reporting. See `docs/phase-plan.md` for the
 full feature roadmap. Phase 1 shipped the DB schema for all entities plus full business
 logic/UI for Auth, Users, Departments, and Equipment CRUD. Phase 2 (maintenance/calibration
-scheduling) and Phase 3 (borrow/return) are also done. Full reporting (Phase 4) is next.
+scheduling), Phase 3 (borrow/return), and Phase 4 (Excel/PDF reporting) are also done — all
+four planned phases are complete; `docs/phase-plan.md`'s "Future ideas" section lists
+unscheduled follow-ups (push notifications, audit logging, category management UI).
 
 ## Repository Structure
 
@@ -24,6 +26,7 @@ backend/            FastAPI + SQLAlchemy + Alembic + PostgreSQL
       v1/             one router file per resource, aggregated in router.py
     services/        business logic (keeps routers thin)
     seed/            seed_data.py creates the initial admin user + sample departments
+    assets/fonts/    bundled DejaVu Sans TTF for Vietnamese-capable PDF export (reportlab)
   migrations/        Alembic; migrations/versions/0001_initial_schema.py creates ALL tables
   tests/             pytest, SQLite in-memory DB via dependency override (see tests/conftest.py)
 frontend/            React + TypeScript + Vite + Ant Design (antd), separate SPA
@@ -33,8 +36,8 @@ frontend/            React + TypeScript + Vite + Ant Design (antd), separate SPA
     layouts/         AppLayout (sidebar nav, gated by user.role)
     pages/           one folder per domain, mirrors backend routers 1:1
     types/           TS interfaces hand-mirrored from Pydantic schemas
-docs/phase-plan.md   Feature roadmap (Phase 2: maintenance scheduling, Phase 3: borrow/return,
-                     Phase 4: reporting) — keep this updated as phases land
+docs/phase-plan.md   Feature roadmap, all 4 phases done; "Future ideas" section for unscheduled
+                     follow-ups — keep this updated as new work lands
 docker-compose.yml            production-shaped: db + backend + frontend(nginx)
 docker-compose.override.yml   local dev: hot reload, mounted source, exposed ports
 ```
@@ -80,9 +83,15 @@ established convention.
   in most dev/CI environments to autogenerate against) — mirror the exact column types/constraints
   already defined in `app/models/`.
 - **Maintenance/borrow "alerts"**: computed on read via a plain SQL query (see
-  `app/services/maintenance_service.get_upcoming_and_overdue`), not a background job/cron. Keep
-  this pattern for Phase 2/3 borrow-overdue detection too — don't add Celery/APScheduler unless
-  the requirement changes to push notifications (see `docs/phase-plan.md` Phase 4).
+  `app/services/maintenance_service.get_upcoming_and_overdue` and the equivalent in
+  `borrow_service.get_overdue_borrows`), not a background job/cron. Don't add
+  Celery/APScheduler unless the requirement changes to push notifications (see
+  `docs/phase-plan.md` "Future ideas").
+- **PDF export**: always render through the bundled DejaVu Sans font (`app/assets/fonts/`,
+  registered in `app/services/report_service._ensure_fonts_registered`), never reportlab's
+  built-in base14 fonts — they don't cover Vietnamese diacritics and would silently mangle
+  output text. Reuse `report_service.export_to_excel`/`export_to_pdf` for any new report
+  rather than hand-rolling `pd.ExcelWriter`/`SimpleDocTemplate` calls elsewhere.
 - **Frontend**: Ant Design components + `@tanstack/react-query` for all server state (no manual
   loading-state booleans). New pages go under `src/pages/<domain>/`, gated in `src/App.tsx` via
   `<ProtectedRoute allowedRoles={[...]}>` when role-restricted.

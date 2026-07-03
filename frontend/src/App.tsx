@@ -9,6 +9,7 @@ import { EquipmentFormPage } from "./pages/equipment/EquipmentFormPage";
 import { EquipmentListPage } from "./pages/equipment/EquipmentListPage";
 import { BorrowListPage } from "./pages/borrow/BorrowListPage";
 import { MaintenanceListPage } from "./pages/maintenance/MaintenanceListPage";
+import { ReportsPage } from "./pages/reports/ReportsPage";
 import { UserListPage } from "./pages/users/UserListPage";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/equipment/:id/edit" element={<EquipmentFormPage />} />
         <Route path="/maintenance" element={<MaintenanceListPage />} />
         <Route path="/borrow" element={<BorrowListPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route
           path="/departments"
           element={

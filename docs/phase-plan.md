@@ -38,10 +38,34 @@ borrow slip code) are normalized to unaccented-uppercase-hyphenated Vietnamese v
 free-text fields (names, notes, purpose, condition) intentionally keep full Vietnamese
 diacritics for display — normalization only applies to identifiers, not prose.
 
-## Phase 4 — Reporting & Polish
-- Full report catalog: maintenance/calibration history export, borrow history export,
-  filtered by department/date range, in Excel and PDF (`reportlab`).
-- Evaluate whether push notifications (email/Zalo/SMS) for overdue maintenance are needed;
-  if so, this is when a background scheduler (APScheduler/Celery) gets introduced — the
-  pull-based alert query from Phase 2 is intentionally sufficient until then.
-- Audit logging if required for compliance.
+## Phase 4 — done
+Full report catalog covering all three domains, each in both Excel and PDF, gated behind
+`GET /reports/{equipment,maintenance,borrow}?format=xlsx|pdf` (any authenticated role — export
+is read-only, mirrors the RBAC of the underlying list endpoints):
+- **Equipment** (`/reports/equipment`): filter by department/status/category.
+- **Maintenance/calibration** (`/reports/maintenance`): filter by department (via equipment),
+  date range (`scheduled_date`), record type, status.
+- **Borrow/return** (`/reports/borrow`): filter by department (`borrower_department_id`), date
+  range (`borrow_date`), status.
+
+`app/services/report_service.py` builds a `pandas.DataFrame` per report (Vietnamese column
+headers, empty-list-safe via explicit `columns=`) and hands it to `export_to_excel` (openpyxl)
+or `export_to_pdf` (reportlab, landscape A4, `SimpleDocTemplate` + `Table`). PDF text renders
+via a bundled DejaVu Sans TTF (`app/assets/fonts/`), registered once with
+`pdfmetrics.registerFont` — required because reportlab's built-in fonts don't cover Vietnamese
+diacritics and the `python:3.12-slim` Docker base has no system fonts installed. Do not switch
+back to a base14 font for Vietnamese-facing PDF output.
+
+Frontend: single `/reports` page with one filter card per report type, "Xuất Excel"/"Xuất PDF"
+buttons that fetch as a blob (`responseType: "blob"`) and trigger a browser download via an
+`<a download>` element — see `frontend/src/api/reports.ts`. The equipment-report UI only
+exposes department/status filters (no category), since equipment categories have no
+CRUD/UI anywhere in the app yet — extend that lookup table's UI first if category filtering
+becomes a requirement.
+
+## Future ideas (not scheduled)
+- Push notifications (email/Zalo/SMS) for overdue maintenance/borrow — would introduce a
+  background scheduler (APScheduler/Celery) for the first time; the pull-based alert queries
+  from Phase 2/3 are intentionally sufficient until this is explicitly requested.
+- Audit logging (who changed what), if required for compliance.
+- Equipment category management UI (currently a lookup table with no CRUD surface).
