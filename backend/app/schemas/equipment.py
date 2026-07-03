@@ -1,7 +1,8 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
+from app.core.text_utils import normalize_code
 from app.models.equipment import EquipmentStatus
 
 
@@ -25,6 +26,11 @@ class EquipmentBase(BaseModel):
     department_id: int | None = None
     status: EquipmentStatus = EquipmentStatus.active
     specs_notes: str | None = None
+
+    @field_validator("code")
+    @classmethod
+    def _normalize_code(cls, v: str) -> str:
+        return normalize_code(v)
 
 
 class EquipmentCreate(EquipmentBase):

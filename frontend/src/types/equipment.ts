@@ -1,4 +1,4 @@
-export type EquipmentStatus = "active" | "in_maintenance" | "broken" | "retired";
+export type EquipmentStatus = "active" | "in_maintenance" | "borrowed" | "broken" | "retired";
 
 export interface Equipment {
   id: number;

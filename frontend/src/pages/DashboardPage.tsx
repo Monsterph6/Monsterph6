@@ -1,16 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Card, Col, Row, Statistic } from "antd";
+import { Alert, Card, Col, Row, Space, Statistic } from "antd";
 
-import { apiClient } from "../api/client";
+import { listOverdueBorrows } from "../api/borrow";
 import { listEquipment } from "../api/equipment";
-
-interface MaintenanceAlert {
-  id: number;
-  equipment_id: number;
-  record_type: string;
-  scheduled_date: string;
-  status: string;
-}
+import { listMaintenanceAlerts } from "../api/maintenance";
 
 export function DashboardPage() {
   const { data: equipmentData } = useQuery({
@@ -20,10 +13,12 @@ export function DashboardPage() {
 
   const { data: alerts } = useQuery({
     queryKey: ["maintenance-alerts"],
-    queryFn: async () => {
-      const { data } = await apiClient.get<MaintenanceAlert[]>("/maintenance/alerts");
-      return data;
-    },
+    queryFn: listMaintenanceAlerts,
+  });
+
+  const { data: overdueBorrows } = useQuery({
+    queryKey: ["borrow-overdue"],
+    queryFn: listOverdueBorrows,
   });
 
   return (
@@ -39,16 +34,28 @@ export function DashboardPage() {
             <Statistic title="Lịch bảo trì/hiệu chuẩn sắp tới (30 ngày)" value={alerts?.length ?? 0} />
           </Card>
         </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic title="Thiết bị quá hạn trả" value={overdueBorrows?.length ?? 0} />
+          </Card>
+        </Col>
       </Row>
-      {alerts && alerts.length > 0 && (
-        <Alert
-          style={{ marginTop: 16 }}
-          type="warning"
-          showIcon
-          message={`Có ${alerts.length} lịch bảo trì/hiệu chuẩn cần chú ý trong 30 ngày tới`}
-          description="Chi tiết đầy đủ và quản lý lịch sẽ có ở giai đoạn tiếp theo (Phase 2)."
-        />
-      )}
+      <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+        {alerts && alerts.length > 0 && (
+          <Alert
+            type="warning"
+            showIcon
+            message={`Có ${alerts.length} lịch bảo trì/hiệu chuẩn cần chú ý trong 30 ngày tới`}
+          />
+        )}
+        {overdueBorrows && overdueBorrows.length > 0 && (
+          <Alert
+            type="error"
+            showIcon
+            message={`Có ${overdueBorrows.length} thiết bị đang mượn đã quá hạn trả`}
+          />
+        )}
+      </Space>
     </>
   );
 }

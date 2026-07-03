@@ -9,7 +9,7 @@ bệnh tật Hải Phòng): equipment catalog, maintenance/calibration schedulin
 tracking, user management with RBAC, and Excel/PDF reporting. See `docs/phase-plan.md` for the
 full feature roadmap. Phase 1 shipped the DB schema for all entities plus full business
 logic/UI for Auth, Users, Departments, and Equipment CRUD. Phase 2 (maintenance/calibration
-scheduling) is also done. Borrow/return (Phase 3) and full reporting (Phase 4) are next.
+scheduling) and Phase 3 (borrow/return) are also done. Full reporting (Phase 4) is next.
 
 ## Repository Structure
 
@@ -88,6 +88,12 @@ established convention.
   `<ProtectedRoute allowedRoles={[...]}>` when role-restricted.
 - **Vietnamese UI text, English code**: all user-facing strings (labels, messages, page titles)
   are in Vietnamese; identifiers, comments, commit messages stay in English.
+- **Code-field standardization**: any "mã"/identifier field (equipment code, department code,
+  borrow slip code) must go through `app/core/text_utils.normalize_code` (a Pydantic
+  `field_validator` on the schema) so it ends up unaccented, uppercase, hyphen-separated —
+  e.g. "Khoa Xét Nghiệm" → "KHOA-XET-NGHIEM". Apply this to new code-style fields as they're
+  added. Do NOT apply it to descriptive/free-text fields (names, notes, purpose, condition) —
+  those keep full Vietnamese diacritics since they're for display, not identification.
 
 ## Git Workflow
 

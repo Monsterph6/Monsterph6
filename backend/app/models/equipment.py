@@ -11,6 +11,7 @@ from app.models.base import TimestampMixin
 class EquipmentStatus(str, enum.Enum):
     active = "active"
     in_maintenance = "in_maintenance"
+    borrowed = "borrowed"
     broken = "broken"
     retired = "retired"
 

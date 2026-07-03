@@ -15,10 +15,28 @@ page with equipment/status/type filters, plus a "Lịch bảo trì/hiệu chuẩ
 detail page scoped to that device. The dashboard alert widget now reuses the same
 `get_upcoming_and_overdue` query with equipment names joined in.
 
-## Phase 3 — Borrow/Return Workflow
-- Borrow request creation, return confirmation, equipment status transitions while borrowed.
-- Overdue-borrow detection reusing the same computed-on-read pattern as Phase 2.
-- UI: borrow action from equipment detail, "equipment borrowed by my department" list.
+## Phase 3 — done
+Borrow/return workflow (`/api/v1/borrow`), restricted to `admin` + `department_staff`
+(`technician` has read-only access). Creating a borrow record requires the equipment to be
+`active`, auto-generates a slip code (`PM######`), and flips the equipment to the new
+`borrowed` status; returning it (`POST /borrow/{id}/return`) flips it back to `active`.
+Overdue-borrow detection reuses the same computed-on-read pattern as Phase 2 (no scheduler).
+Dedicated `/borrow` list page with equipment/department/status filters, plus a "Lịch sử
+mượn/trả" tab on the equipment detail page. Dashboard gained an overdue-borrow count/alert.
+
+Borrow records follow a standard public-asset borrow-slip shape: `purpose`, `approved_by`,
+`condition_on_borrow`, `condition_on_return`, `received_by`, in addition to the borrower
+(department, and optionally a specific user) and dates. The UI only exposes department-level
+borrowing (not per-user) since listing individual users requires `admin` — see
+`app/api/v1/users.py` — which `department_staff` doesn't have; `borrower_user_id` still exists
+on the API/model for future use.
+
+**Data-field standardization**: all "mã"/code-style fields (equipment code, department code,
+borrow slip code) are normalized to unaccented-uppercase-hyphenated Vietnamese via
+`app/core/text_utils.normalize_code`, applied as a Pydantic validator on `Equipment.code` and
+`Department.code` (borrow codes are server-generated, already in that shape). Descriptive
+free-text fields (names, notes, purpose, condition) intentionally keep full Vietnamese
+diacritics for display — normalization only applies to identifiers, not prose.
 
 ## Phase 4 — Reporting & Polish
 - Full report catalog: maintenance/calibration history export, borrow history export,

@@ -5,11 +5,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { createEquipment, getEquipment, updateEquipment } from "../../api/equipment";
 import { listDepartments } from "../../api/departments";
+import { listBorrowRecords } from "../../api/borrow";
 import { listMaintenanceRecords } from "../../api/maintenance";
+import { BorrowRecordFormModal } from "../../components/borrow/BorrowRecordFormModal";
+import { BorrowRecordTable } from "../../components/borrow/BorrowRecordTable";
 import { MaintenanceRecordFormModal } from "../../components/maintenance/MaintenanceRecordFormModal";
 import { MaintenanceRecordTable } from "../../components/maintenance/MaintenanceRecordTable";
 import { useAuth } from "../../auth/AuthContext";
 
+// "borrowed" is not listed here deliberately: it's system-managed by the borrow
+// workflow (set/cleared automatically), not something a user picks by hand.
 const STATUS_OPTIONS = [
   { value: "active", label: "Đang hoạt động" },
   { value: "in_maintenance", label: "Đang bảo trì" },
@@ -121,6 +126,44 @@ function EquipmentMaintenanceTab({ equipmentId }: { equipmentId: number }) {
   );
 }
 
+function EquipmentBorrowTab({ equipmentId }: { equipmentId: number }) {
+  const { user } = useAuth();
+  const canManage = user?.role === "admin" || user?.role === "department_staff";
+  const [formOpen, setFormOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: records, isLoading } = useQuery({
+    queryKey: ["borrow", { equipment_id: equipmentId }],
+    queryFn: () => listBorrowRecords({ equipment_id: equipmentId }),
+  });
+
+  function refresh() {
+    queryClient.invalidateQueries({ queryKey: ["borrow"] });
+    queryClient.invalidateQueries({ queryKey: ["borrow-overdue"] });
+    queryClient.invalidateQueries({ queryKey: ["equipment"] });
+  }
+
+  return (
+    <Space direction="vertical" style={{ width: "100%" }}>
+      {canManage && (
+        <Button type="primary" onClick={() => setFormOpen(true)}>
+          Thêm phiếu mượn
+        </Button>
+      )}
+      <BorrowRecordTable records={records ?? []} isLoading={isLoading} onChanged={refresh} />
+      <BorrowRecordFormModal
+        open={formOpen}
+        equipmentId={equipmentId}
+        onClose={() => setFormOpen(false)}
+        onCreated={() => {
+          setFormOpen(false);
+          refresh();
+        }}
+      />
+    </Space>
+  );
+}
+
 export function EquipmentFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -142,6 +185,11 @@ export function EquipmentFormPage() {
             key: "maintenance",
             label: "Lịch bảo trì/hiệu chuẩn",
             children: <EquipmentMaintenanceTab equipmentId={Number(id)} />,
+          },
+          {
+            key: "borrow",
+            label: "Lịch sử mượn/trả",
+            children: <EquipmentBorrowTab equipmentId={Number(id)} />,
           },
         ]}
       />
