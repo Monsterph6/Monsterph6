@@ -1,10 +1,14 @@
-import { App, Button, Card, Form, Input, Select } from "antd";
-import { useEffect } from "react";
+import { App, Button, Card, Form, Input, Select, Space, Tabs } from "antd";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { createEquipment, getEquipment, updateEquipment } from "../../api/equipment";
 import { listDepartments } from "../../api/departments";
+import { listMaintenanceRecords } from "../../api/maintenance";
+import { MaintenanceRecordFormModal } from "../../components/maintenance/MaintenanceRecordFormModal";
+import { MaintenanceRecordTable } from "../../components/maintenance/MaintenanceRecordTable";
+import { useAuth } from "../../auth/AuthContext";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Đang hoạt động" },
@@ -13,9 +17,7 @@ const STATUS_OPTIONS = [
   { value: "retired", label: "Ngừng sử dụng" },
 ];
 
-export function EquipmentFormPage() {
-  const { id } = useParams();
-  const isEdit = Boolean(id);
+function EquipmentInfoTab({ id, isEdit }: { id: string | undefined; isEdit: boolean }) {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const { message } = App.useApp();
@@ -47,42 +49,102 @@ export function EquipmentFormPage() {
   }
 
   return (
-    <Card title={isEdit ? "Sửa thiết bị" : "Thêm thiết bị mới"} style={{ maxWidth: 640 }}>
-      <Form layout="vertical" form={form} onFinish={handleFinish} initialValues={{ status: "active" }}>
-        <Form.Item name="code" label="Mã thiết bị" rules={[{ required: true }]}>
-          <Input disabled={isEdit} />
-        </Form.Item>
-        <Form.Item name="name" label="Tên thiết bị" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item name="manufacturer" label="Nhà sản xuất">
-          <Input />
-        </Form.Item>
-        <Form.Item name="model" label="Model">
-          <Input />
-        </Form.Item>
-        <Form.Item name="serial_number" label="Số seri">
-          <Input />
-        </Form.Item>
-        <Form.Item name="location" label="Vị trí">
-          <Input />
-        </Form.Item>
-        <Form.Item name="department_id" label="Phòng ban quản lý">
-          <Select
-            allowClear
-            options={departments?.map((d) => ({ value: d.id, label: d.name }))}
-          />
-        </Form.Item>
-        <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
-          <Select options={STATUS_OPTIONS} />
-        </Form.Item>
-        <Form.Item name="specs_notes" label="Ghi chú/thông số">
-          <Input.TextArea rows={3} />
-        </Form.Item>
-        <Button type="primary" htmlType="submit">
-          Lưu
+    <Form layout="vertical" form={form} onFinish={handleFinish} initialValues={{ status: "active" }}>
+      <Form.Item name="code" label="Mã thiết bị" rules={[{ required: true }]}>
+        <Input disabled={isEdit} />
+      </Form.Item>
+      <Form.Item name="name" label="Tên thiết bị" rules={[{ required: true }]}>
+        <Input />
+      </Form.Item>
+      <Form.Item name="manufacturer" label="Nhà sản xuất">
+        <Input />
+      </Form.Item>
+      <Form.Item name="model" label="Model">
+        <Input />
+      </Form.Item>
+      <Form.Item name="serial_number" label="Số seri">
+        <Input />
+      </Form.Item>
+      <Form.Item name="location" label="Vị trí">
+        <Input />
+      </Form.Item>
+      <Form.Item name="department_id" label="Phòng ban quản lý">
+        <Select allowClear options={departments?.map((d) => ({ value: d.id, label: d.name }))} />
+      </Form.Item>
+      <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}>
+        <Select options={STATUS_OPTIONS} />
+      </Form.Item>
+      <Form.Item name="specs_notes" label="Ghi chú/thông số">
+        <Input.TextArea rows={3} />
+      </Form.Item>
+      <Button type="primary" htmlType="submit">
+        Lưu
+      </Button>
+    </Form>
+  );
+}
+
+function EquipmentMaintenanceTab({ equipmentId }: { equipmentId: number }) {
+  const { user } = useAuth();
+  const canManage = user?.role === "admin" || user?.role === "technician";
+  const [formOpen, setFormOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: records, isLoading } = useQuery({
+    queryKey: ["maintenance", { equipment_id: equipmentId }],
+    queryFn: () => listMaintenanceRecords({ equipment_id: equipmentId }),
+  });
+
+  function refresh() {
+    queryClient.invalidateQueries({ queryKey: ["maintenance"] });
+    queryClient.invalidateQueries({ queryKey: ["maintenance-alerts"] });
+  }
+
+  return (
+    <Space direction="vertical" style={{ width: "100%" }}>
+      {canManage && (
+        <Button type="primary" onClick={() => setFormOpen(true)}>
+          Thêm lịch mới
         </Button>
-      </Form>
+      )}
+      <MaintenanceRecordTable records={records ?? []} isLoading={isLoading} onChanged={refresh} />
+      <MaintenanceRecordFormModal
+        open={formOpen}
+        equipmentId={equipmentId}
+        onClose={() => setFormOpen(false)}
+        onCreated={() => {
+          setFormOpen(false);
+          refresh();
+        }}
+      />
+    </Space>
+  );
+}
+
+export function EquipmentFormPage() {
+  const { id } = useParams();
+  const isEdit = Boolean(id);
+
+  if (!isEdit) {
+    return (
+      <Card title="Thêm thiết bị mới" style={{ maxWidth: 640 }}>
+        <EquipmentInfoTab id={id} isEdit={isEdit} />
+      </Card>
+    );
+  }
+
+  return (
+    <Card style={{ maxWidth: 800 }}>
+      <Tabs
+        items={[
+          { key: "info", label: "Thông tin", children: <EquipmentInfoTab id={id} isEdit={isEdit} /> },
+          {
+            key: "maintenance",
+            label: "Lịch bảo trì/hiệu chuẩn",
+            children: <EquipmentMaintenanceTab equipmentId={Number(id)} />,
+          },
+        ]}
+      />
     </Card>
   );
 }

@@ -8,6 +8,7 @@ from app.core.database import Base, get_db
 from app.core.security import hash_password
 from app.main import app
 from app.models.department import Department
+from app.models.equipment import Equipment
 from app.models.user import User, UserRole
 
 
@@ -59,6 +60,15 @@ def department(db_session):
     db_session.commit()
     db_session.refresh(dept)
     return dept
+
+
+@pytest.fixture()
+def equipment(db_session, department):
+    item = Equipment(code="TB-001", name="May xet nghiem PCR", department_id=department.id)
+    db_session.add(item)
+    db_session.commit()
+    db_session.refresh(item)
+    return item
 
 
 @pytest.fixture()

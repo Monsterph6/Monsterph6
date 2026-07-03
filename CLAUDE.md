@@ -7,8 +7,9 @@ This file guides Claude Code when working in this repository.
 Web app for managing specialized medical/lab equipment for CDC Hải Phòng (Trung tâm Kiểm soát
 bệnh tật Hải Phòng): equipment catalog, maintenance/calibration scheduling, borrow/return
 tracking, user management with RBAC, and Excel/PDF reporting. See `docs/phase-plan.md` for the
-full feature roadmap — Phase 1 (this build) ships the DB schema for all entities but only
-implements full business logic/UI for Auth, Users, Departments, and Equipment CRUD.
+full feature roadmap. Phase 1 shipped the DB schema for all entities plus full business
+logic/UI for Auth, Users, Departments, and Equipment CRUD. Phase 2 (maintenance/calibration
+scheduling) is also done. Borrow/return (Phase 3) and full reporting (Phase 4) are next.
 
 ## Repository Structure
 

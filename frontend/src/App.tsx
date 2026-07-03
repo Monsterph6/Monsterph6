@@ -7,6 +7,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { DepartmentListPage } from "./pages/departments/DepartmentListPage";
 import { EquipmentFormPage } from "./pages/equipment/EquipmentFormPage";
 import { EquipmentListPage } from "./pages/equipment/EquipmentListPage";
+import { MaintenanceListPage } from "./pages/maintenance/MaintenanceListPage";
 import { UserListPage } from "./pages/users/UserListPage";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/equipment" element={<EquipmentListPage />} />
         <Route path="/equipment/new" element={<EquipmentFormPage />} />
         <Route path="/equipment/:id/edit" element={<EquipmentFormPage />} />
+        <Route path="/maintenance" element={<MaintenanceListPage />} />
         <Route
           path="/departments"
           element={

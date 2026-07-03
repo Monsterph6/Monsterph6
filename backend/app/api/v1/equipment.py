@@ -20,7 +20,7 @@ router = APIRouter(prefix="/equipment", tags=["equipment"])
 def get_equipment_list(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=200),
+    page_size: int = Query(20, ge=1, le=1000),
     department_id: int | None = None,
     status_filter: EquipmentStatus | None = Query(None, alias="status"),
     category_id: int | None = None,
