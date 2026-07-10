@@ -490,7 +490,11 @@ hiểu ban đầu:**
   vai trò 2 cột `Data.Column6`/`C_CN` cho nhau rồi lấy `L_T` thành
   `L_NCN` — gợi ý sheet `CN` ghi 1 dòng "chuyển nguồn" giữa 2 trạm/lô,
   1 bên đọc là Xuất (XCN) 1 bên đọc là Nhập (NCN) tại cùng 1 dòng dữ
-  liệu (2 đầu 1 giao dịch chuyển).
+  liệu (2 đầu 1 giao dịch chuyển). **Đã xác nhận trực tiếp từ người
+  dùng (2026-07-10)**: sheet `CN` **chính là bảng GỘP (union) của
+  X_CN và N_CN** — 2 tập dòng dữ liệu Xuất chuyển nguồn/Nhập chuyển
+  nguồn nhập/lưu chung 1 sheet, không phải "2 cách đọc khác nhau của
+  cùng 1 dòng" như suy đoán trên (đã sửa lại cách hiểu).
   **Ý nghĩa cho thiết kế**: khi làm Module 7 (QTTPT), cần thêm 1 nguồn
   nhập liệu riêng cho sheet `CN` này (tương tự Module 4 đọc PA — 1
   dòng/lô, không phải nhập tổng theo kỳ), rồi Module 6's
@@ -563,16 +567,29 @@ hiểu ban đầu:**
      `md/01-...md` mục 9b. `B_Ak`/`B_Vk`/`B_Qk`/`B_Sk` (cột mới thấy
      trong `Bán2`, nghi ngờ = lượng bán × chỉ tiêu chất lượng theo lô)
      **CHƯA XÁC NHẬN công thức chính xác**.
-  2. `THP_KVCP_2026.m` query `Bán` nhân `L_TTT` (tồn đầu kỳ, không
-     phải `L_B`) với Ak/Vk/Sk/Qk, kèm điều kiện lọc `STTPA<0` — theo
-     `Index` query gốc `STTPA` luôn ≥ 1, nên điều kiện này khó hiểu.
-     Chưa rõ ý nghĩa thật của cột `B_Ak`/`B_Vk`/... trong ngữ cảnh này
-     (LƯU Ý: khác với `B_Ak`/... mới thấy ở `Bán2` của `Cân bằng
-     chất.xlsx` — 2 file khác nhau, có thể 2 công thức khác nhau dù
-     trùng tên cột, chưa xác nhận có phải cùng ý nghĩa không).
-  3. Mã trạm/khu vực viết tắt `ĐHP`/`ĐTB`/`ĐVA` xuất hiện trong
-     `THP_KVCP_2026.m` (named range `Bieu35a10 ĐHP`/`ĐTB`, `Bieu45a14
-     ĐHP`/`ĐTB`/`ĐVA`) — chưa xác nhận ý nghĩa.
+  2. **Đã xác nhận trực tiếp từ người dùng (2026-07-10)**: điều kiện
+     `STTPA<0` trong query `Bán` của `THP_KVCP_2026.m` **lọc ra các
+     cám thành phẩm đã pha trộn từ tồn năm trước** — tức những dòng
+     không có 1 phương án (PA) thật trong năm hiện tại để đánh số
+     `STTPA` (qua `Index` query, luôn ≥ 1), nên được gán 1 giá trị âm
+     làm cờ đánh dấu "hàng tồn năm trước, không phải PA năm nay". Giải
+     thích được vì sao công thức nhân `L_TTT` (tồn đầu kỳ) thay vì
+     `L_B`: với nhóm hàng tồn năm trước này, "tồn đầu kỳ" mới là số
+     lượng còn ý nghĩa để tính bình quân gia quyền chất lượng, không
+     phải lượng bán trong năm. Không còn là điểm treo.
+  3. **Đã xác nhận trực tiếp từ người dùng (2026-07-10)**: các named
+     range `Bieu35a10`/`Bieu45a14` trong `THP_KVCP_2026.m` **là các
+     biểu báo cáo riêng theo TỪNG CÁM THÀNH PHẨM** (Biểu 35 dành cho
+     sản phẩm "5a.10", Biểu 45 dành cho "5a.14") — không phải mã
+     trạm/khu vực như suy đoán ban đầu. Hậu tố `ĐHP`/`ĐTB`/`ĐVA` là
+     phần của TÊN BIẾN THỂ sản phẩm (giống `ĐHD` ở "Cám 6b.1 ĐHD") —
+     đã thấy đúng các tên này lặp lại xuyên suốt `LK`/`Result`/`CLB`/
+     `Bán2` (vd "5a.10 ĐTB", "5a.14 ĐHP", "5a.14 ĐVA") làm tên `Cam_TP`
+     (cám thành phẩm). Không còn là điểm treo ở mức cấu trúc — ý nghĩa
+     chữ viết tắt `ĐHP`/`ĐTB`/`ĐVA`/`ĐHD` cụ thể là gì (tên viết tắt
+     kho/khu vực hay quy ước nội bộ khác) vẫn **CHƯA XÁC NHẬN**, nhưng
+     không ảnh hưởng thiết kế (chỉ là 1 chuỗi tên sản phẩm, không cần
+     giải mã ý nghĩa từng chữ để lưu đúng vào `san_pham`).
   4. Phiếu "điều chỉnh" khi có cả lượng thay đổi (không chỉ tiền) —
      xem mục "Module 3" phía trên — CSDL mới nên ghi tổng (như Excel
      hiện tại) hay tách theo lô con: **cần người dùng quyết định**.
