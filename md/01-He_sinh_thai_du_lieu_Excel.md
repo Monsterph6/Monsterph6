@@ -599,3 +599,96 @@ dụng tuyệt đối nguyên tắc "không lưu cứng số liệu suy ra đư�
 nguyên tắc #2 đã sửa lại trong `CLAUDE.md` mục 2. Bảng phân bổ theo lô
 này nên là 1 bảng snapshot lưu theo kỳ, có cờ đã chốt, không phải view
 tính động.
+
+## 9. `Cân bằng chất.xlsx` — khảo sát chi tiết (2026-07-10, file thật)
+
+File này (đã xác nhận trước đó là bản **chính thức**, phục vụ trực
+tiếp sheet `DCCL` — xem mục 6) không có Power Query M (công thức Excel
+thuần). Đã khảo sát trực tiếp bằng `openpyxl` trên file thật, người
+dùng giải thích luồng nghiệp vụ song song. Các sheet thật:
+`PA`, `B8 (PA)`, `Tính Q`, `Sheet1`, `Bán2`, `CLB`, `B8`, `PL`, `BK
+chứng thư 11 2025`, `B8 (2)`, `THmuaKV` — 2 sheet cuối (`Sheet1`, `BK
+chứng thư 11 2025`) **chưa từng có trong tài liệu khảo sát cũ**.
+
+### 9a. `CLB` — chất lượng bán (input, đã xác nhận từ người dùng)
+
+Cột: `Tháng | Cám | Lượng | Ak | Vk | Qk | Sk` — 1 dòng = 1 (tháng,
+cám thành phẩm), là **chất lượng bán thực tế** (không phải chất lượng
+tính từ PA). **Nhập tay hoặc cập nhật từ file cán bộ Hàng bán cung
+cấp** (theo người dùng). Đã xác nhận được nguồn cụ thể: sheet `BK
+chứng thư 11 2025` trong cùng file có **số liệu giống hệt** `CLB` (vd
+"Cám 5a.10 (ĐTB)" tháng 1: Lượng=167460.6, Ak=29.97, Vk=9.47, Qk=5775,
+Sk=0.63 — khớp tuyệt đối cả 2 sheet) → đây chính là bảng kê chứng thư
+giám định chất lượng (nguồn "cán bộ Hàng bán cung cấp" mà người dùng
+nhắc tới), dùng để cập nhật `CLB`.
+
+### 9b. `Bán2` — đã giải mã các cột từng ghi "chưa xác nhận"
+
+Cấu trúc đúng layout query `Bán`/`tenthan` của `QTTPT_2026.m` (`SPT,
+N_HD, N_PT, N_NT, Tram, Data.Column6, Data.Column7, Ak, Vk, Sk, Qk,
+STTPA, Cảng, Tháng, L_TTT, L_TTN, L_PA, L_HHB, L_KK, L_XCN, L_NCN,
+L_B`), có thêm các cột **`C_TP`/`C_PT`/`PL`/`C_B8`** — đúng những cột
+đang ghi "chưa xác nhận ý nghĩa" trong `CLAUDE.md` mục 6 (nguồn từ
+sheet `CN` trong `QTTPT 2026.xlsx`). Đã giải mã bằng dữ liệu thật:
+
+- **`PL` = "TN" (Trong Nước) hoặc "NK" (Nhập Khẩu)** — khớp thẳng với
+  field `san_pham.nguon_goc` (`trong_nuoc`/`nhap_khau`) đã cài ở
+  Module 2. **Đây là câu trả lời cho điểm chưa xác nhận về ý nghĩa cột
+  `PL` trong sheet `CN`.**
+- `C_TP` = tên sản phẩm đầu ra (trùng giá trị `Data.Column6`).
+- `C_PT` = nhãn đầy đủ của thành phần đầu vào, có kèm khoảng thời gian
+  hiệu lực Ak khi là than trong nước (vd `"- Cám 5b.1 (Ak
+  31,01-35,00) (từ 04/01/2025 đến 19/12/2025)"`).
+- `C_B8` = bản rút gọn của `C_PT` (bỏ khoảng thời gian) — dùng làm
+  nhãn Biểu 8 cho thành phần đó.
+- Thêm 5 cột cuối chưa từng ghi trong tài liệu cũ: **`B_Ak`/`B_Vk`/
+  `B_Qk`/`B_Sk`** (giá trị quan sát = 0 ở các dòng có `L_B=0` — gợi ý
+  đây là **lượng bán × chỉ tiêu chất lượng** theo từng lô, tử số của
+  công thức bình quân gia quyền) và **`Round`** (có vẻ liên quan tới
+  cùng cơ chế làm tròn/rank đã ghi ở mục 8) — **CHƯA XÁC NHẬN chính
+  xác công thức**, chỉ mới suy luận hợp lý từ cấu trúc, cần hỏi thêm
+  khi cần độ chính xác cao.
+
+### 9c. `B8`/`B8 (2)`/`B8 (PA)` — bước hiệu chỉnh chất lượng cấp cho DCCL (đã xác nhận từ người dùng 2026-07-10)
+
+Đây là bước quan trọng nhất của file, **khác hẳn** phép bình quân gia
+quyền đơn giản đã cài ở `can_bang_chat.py::binh_quan_gia_quyen()`.
+Với mỗi (Tháng, Cám thành phẩm), cấu trúc mỗi sheet `B8`/`B8 (2)`:
+
+- **Dòng 1**: chất lượng mục tiêu (lấy từ `CLB` — chất lượng bán thực
+  đo).
+- **Dòng 2**: bình quân gia quyền tính từ các dòng PA thành phần, và
+  **chênh lệch** giữa dòng 1 và bình quân này — tính với độ chính xác
+  cao hơn mức hiển thị cuối (Ak/Vk/Sk lấy 4 số thập phân, Qk lấy 2 số
+  — do đơn vị Qk lớn hơn hẳn, cal/g).
+- **Dòng 3**: giá trị chênh lệch đã làm tròn đúng mức cần phân bổ.
+- **Cột J-M**: nơi phân bổ chênh lệch — **CHỈNH TAY THEO KINH NGHIỆM**
+  (xác nhận trực tiếp từ người dùng, không theo công thức/rank cố
+  định như quy tắc ở mục 8), tăng dần từng bước nhỏ (**0,01 với
+  Ak/Vk/Sk, 1 với Qk**) xuống các dòng cám thành phần (từ dòng 5), cho
+  tới khi chênh lệch ở dòng 2 **tiến gần 0 nhất có thể**.
+- **Cột A-I, từ dòng 5 trở xuống**: kết quả — chất lượng **đã hiệu
+  chỉnh** của từng cám thành phần, đây mới là dữ liệu **cấp cho
+  `DCCL`** (không phải chất lượng gốc từ PA).
+
+**Ý nghĩa quan trọng cho thiết kế Module 8** — đây là **bản chất
+nghiệp vụ khác hẳn** quy tắc làm tròn phân bổ lượng ở mục 8
+(`Append1`): quy tắc đó là **thuật toán xác định** (rank theo delta,
+tự động hoá được 100%); bước hiệu chỉnh chất lượng này là **thao tác
+thủ công có chủ đích, dựa vào kinh nghiệm người làm**, không nên ép
+thành công thức cứng trong CSDL mới — nếu tự động hoá sẽ cho kết quả
+khác người làm tay, sai lệch số liệu kế toán. Thiết kế đúng: hệ thống
+có thể **gợi ý** bình quân gia quyền ban đầu + hiển thị chênh lệch so
+với `CLB`, nhưng **giá trị cuối cùng cấp cho DCCL phải do người dùng
+xác nhận/chỉnh tay** — cùng tính chất với `ĐN QÂ` (Module 3) và kết
+quả kiểm kê (Module 6), KHÔNG phải giá trị suy ra thuần tuý.
+**`can_bang_chat.py` hiện tại CHƯA có bước hiệu chỉnh này** — cần bổ
+sung khi làm tiếp Module 8.
+
+Sheet `Tính Q` chứa bảng hệ số quy đổi theo loại than (Ak trung bình,
+chênh lệch Ak cho phép, "sự biến thiên nhiệt năng cho 1 đơn vị Ak",
+Qk max/min...) — nhiều khả năng dùng để quy đổi chênh lệch Ak thành
+chênh lệch Qk tương ứng trong bước hiệu chỉnh trên, nhưng **CHƯA XÁC
+NHẬN** công thức chính xác dùng bảng này ở đâu trong `B8`.
+
+Sheet `Sheet1`, `PL`, `THmuaKV` — **CHƯA XÁC NHẬN** vai trò cụ thể.

@@ -645,15 +645,30 @@ Thuật toán waterfall đã xác nhận — xem `CLAUDE.md` nguyên tắc #2 +
       end-to-end gộp 2 san_pham cùng nhóm tính tay khớp, 1 test lỗi
       nhóm không tồn tại, 1 test API). `pytest tests/ -v`: 73/73 xanh.
       Smoke-test qua `uvicorn` thật bằng `curl`, số ra khớp tính tay.
-- [ ] **CHƯA đối chiếu được với số thật**: `Cân bằng chất.xlsx` không
-      có Power Query M (công thức Excel thuần — xem `md/01-...md` mục
-      7), nên KHÔNG có căn cứ M code để xác nhận chính xác 3 "trạng
-      thái" trên có đúng là những gì sheet `DCCL` cần không, hay còn
-      thiếu/thừa trạng thái nào khác (file gốc còn có sheet `Tính Q`,
-      `Bán2`, `CLB`, `PL`, `THmuaKV`... chưa rõ vai trò từng sheet).
-      **Cần file `Cân bằng chất.xlsx`/`THP.Biểu mẫu Quyết toán KVCP
-      2026.xlsx` thật để đối chiếu số + layout** trước khi tin tưởng
-      hoàn toàn, giống cách các module trước đã làm.
+- [x] **Đã có file `Cân bằng chất.xlsx` thật để đối chiếu (2026-07-10)**
+      — người dùng cung cấp trực tiếp, đọc bằng `openpyxl` + giải
+      thích luồng nghiệp vụ. Kết quả đầy đủ ở `md/01-...md` mục 9.
+      Tóm tắt: đã xác nhận nguồn `CLB` (từ sheet `BK chứng thư`, khớp
+      số tuyệt đối), đã giải mã cột `PL`=TN/NK (`CLAUDE.md` mục 6).
+- [ ] **PHÁT HIỆN QUAN TRỌNG (2026-07-10) — thiết kế hiện tại CHƯA đủ,
+      không chỉ là "chưa đối chiếu số"**: quy trình thật KHÔNG dừng ở
+      bình quân gia quyền đơn thuần. Có thêm 1 bước **hiệu chỉnh chất
+      lượng từng cám thành phần cho khớp với `CLB`** (chất lượng bán
+      thực đo), thực hiện **THỦ CÔNG theo kinh nghiệm người làm** (xác
+      nhận trực tiếp từ người dùng — không phải công thức cố định như
+      quy tắc làm tròn phân bổ lượng ở Module 6). Kết quả hiệu chỉnh
+      này (không phải bình quân gia quyền gốc) mới là dữ liệu cấp cho
+      `DCCL`. Xem `md/01-...md` mục 9c để biết đầy đủ cơ chế (dòng
+      chênh lệch, bước 0,01/1 chỉnh tay).
+      **Việc cần làm khi code tiếp Module 8**: thêm 1 bước "gợi ý bình
+      quân gia quyền + hiển thị chênh lệch với `CLB` + người dùng xác
+      nhận/chỉnh tay giá trị cuối" — cùng tính chất với `ĐN QÂ` (Module
+      3)/kết quả kiểm kê (Module 6), KHÔNG coi là giá trị suy ra thuần
+      tuý như thiết kế hiện tại của `can_bang_chat.py`.
+      Còn treo (chưa xác nhận): công thức chính xác cột `B_Ak`/`B_Vk`/
+      `B_Qk`/`B_Sk`/`Round` trong sheet `Bán2`; vai trò bảng hệ số ở
+      sheet `Tính Q` (nghi ngờ dùng để quy đổi chênh lệch Ak→Qk); vai
+      trò sheet `Sheet1`/`PL`/`THmuaKV`.
 - [x] `Cân bằng chất.xlsx` là bản CHÍNH THỨC (xác nhận 2026-07-08) —
       đích đối chiếu là sheet `DCCL` trong `THP.Biểu mẫu Quyết toán
       KVCP 2026.xlsx` (không phải `Bieu8 canbangchat` như suy đoán ban

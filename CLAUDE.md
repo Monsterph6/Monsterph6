@@ -341,6 +341,20 @@ cập nhật 2026-07-09 (chi tiết từng việc xem `TASK.md`):
   được với số thật**: `Cân bằng chất.xlsx` không có Power Query M nên
   không có căn cứ xác nhận đúng layout/công thức sheet `DCCL` — xem
   `TASK.md` Phase 7.
+  **Phát hiện quan trọng (2026-07-10), đã đối chiếu bằng file thật**:
+  quy trình thật KHÔNG dừng ở bình quân gia quyền đơn thuần — có thêm
+  1 bước **hiệu chỉnh chất lượng từng cám thành phần cho khớp với
+  `CLB` (chất lượng bán thực đo, từ chứng thư giám định)**, thực hiện
+  **THỦ CÔNG theo kinh nghiệm** (xác nhận trực tiếp từ người dùng,
+  không phải công thức cố định) — xem `md/01-...md` mục 9c. Kết quả
+  hiệu chỉnh này (không phải bình quân gia quyền gốc) mới là dữ liệu
+  cấp cho `DCCL`. `can_bang_chat.py` hiện tại **CHƯA có bước này** —
+  cần thiết kế lại thành 1 bước gợi ý + xác nhận tay (cùng tính chất
+  với `ĐN QÂ`/kết quả kiểm kê), không phải giá trị suy ra thuần tuý.
+  Cũng đã giải mã được ý nghĩa cột `PL` trong sheet `CN`/`Bán2`: `PL`
+  = `"TN"` (Trong Nước) / `"NK"` (Nhập Khẩu) — khớp thẳng field
+  `san_pham.nguon_goc` đã có ở Module 2, xem mục 6 dưới (đã đóng điểm
+  "chưa xác nhận" về sheet `CN`).
 - **Bài học rút ra khi kiểm chứng Module 3/4 bằng dữ liệu thật**: đã
   có 1 lần suy luận sai từ đọc M code/mô tả gián tiếp (nhầm "Phí kẹp"
   với "Kẹp chì") mà không phát hiện ra cho tới khi chạy thử code thật
@@ -537,13 +551,25 @@ hiểu ban đầu:**
   đã có 23 dòng dữ liệu thật trong 1 tháng. Không đổi cách xử lý (vẫn
   nhập tay qua `--sheet`), chỉ sửa lại mức độ thường xuyên.
 - **Mới phát sinh (2026-07-10), chưa xác nhận**:
-  1. Sheet `CN` (nguồn XCN/NCN theo lô, xem mục "việc chưa xác nhận"
-     phía trên) có các cột `C_TP`/`C_PT`/`PL`/`C_B8` chưa rõ ý nghĩa —
-     cần file `QTTPT 2026.xlsx` thật + hỏi kế toán.
+  1. Sheet `CN` (nguồn XCN/NCN theo lô) có các cột `C_TP`/`C_PT`/`PL`/
+     `C_B8` — **đã giải mã 1 phần (2026-07-10)** bằng cách đối chiếu
+     sheet `Bán2` trong `Cân bằng chất.xlsx` (cùng layout các cột
+     này): `PL` = `"TN"` (Trong Nước) / `"NK"` (Nhập Khẩu), khớp thẳng
+     field `san_pham.nguon_goc`; `C_TP` = tên sản phẩm đầu ra; `C_PT`/
+     `C_B8` = nhãn đầy đủ/rút gọn của thành phần đầu vào. Còn 2 cột
+     `C_TP` (đã rõ) không còn treo; cột `C_B8`/`C_PT` **công thức
+     chính xác cách sinh ra** (chuỗi ghép từ đâu, khoảng thời gian
+     hiệu lực Ak lấy từ nguồn nào) **vẫn CHƯA XÁC NHẬN** — xem
+     `md/01-...md` mục 9b. `B_Ak`/`B_Vk`/`B_Qk`/`B_Sk` (cột mới thấy
+     trong `Bán2`, nghi ngờ = lượng bán × chỉ tiêu chất lượng theo lô)
+     **CHƯA XÁC NHẬN công thức chính xác**.
   2. `THP_KVCP_2026.m` query `Bán` nhân `L_TTT` (tồn đầu kỳ, không
      phải `L_B`) với Ak/Vk/Sk/Qk, kèm điều kiện lọc `STTPA<0` — theo
      `Index` query gốc `STTPA` luôn ≥ 1, nên điều kiện này khó hiểu.
-     Chưa rõ ý nghĩa thật của cột `B_Ak`/`B_Vk`/... trong ngữ cảnh này.
+     Chưa rõ ý nghĩa thật của cột `B_Ak`/`B_Vk`/... trong ngữ cảnh này
+     (LƯU Ý: khác với `B_Ak`/... mới thấy ở `Bán2` của `Cân bằng
+     chất.xlsx` — 2 file khác nhau, có thể 2 công thức khác nhau dù
+     trùng tên cột, chưa xác nhận có phải cùng ý nghĩa không).
   3. Mã trạm/khu vực viết tắt `ĐHP`/`ĐTB`/`ĐVA` xuất hiện trong
      `THP_KVCP_2026.m` (named range `Bieu35a10 ĐHP`/`ĐTB`, `Bieu45a14
      ĐHP`/`ĐTB`/`ĐVA`) — chưa xác nhận ý nghĩa.
