@@ -54,6 +54,41 @@ khi làm được ở giai đoạn sớm, đáng tin cậy hơn hẳn test mẫu
 - Quá trình này lật ra 1 lỗi tài liệu (nhầm "Phí kẹp" với "Kẹp chì" —
   đã sửa trong `md/01-...md`) — bài học: **luôn kiểm chứng bằng file
   thật khi có thể, đừng chỉ tin suy luận từ M code hoặc sample tự tạo**.
+- **Đợt kiểm chứng mới (2026-07-10)** — người dùng cung cấp trực tiếp
+  6 file thật + mã nguồn `bkhn_td_gui.py`, đọc bằng `openpyxl` và chạy
+  thử logic tool thật (không chỉ đọc M code/tài liệu). Kết quả đầy đủ
+  đã cập nhật vào `CLAUDE.md` mục "Module 3" + mục 6, và `md/01-...md`
+  mục 5b/5c/5e/8. Tóm tắt các đính chính quan trọng:
+  1. Mẫu BKHN có cột quy ẩm cho **cả** than nội địa lẫn nhập khẩu
+     (không phải "nội địa không có cột" như ghi trước đây).
+  2. Lý do ĐN QÂ phải nhập tay: `parse_file()` của `bkhn_td_gui.py`
+     luôn cho `hao_hutQA=0.0` ở cả 2 nhánh xử lý (1 hard-code, 1 lỗi
+     trỏ trùng ô) — đã xác nhận bằng cách chạy lại logic thật trên 2
+     file BKHN thật (SK01 nội địa, SK02 nhập khẩu).
+  3. "Phiếu điều chỉnh giá chỉ chỉnh tiền" — sai với 1 loại phiếu
+     thật (`SK19 ĐC tăng lượng...`, có điều chỉnh cả 147,5 tấn lượng).
+     Tool hiện tại chỉ giữ tổng tiền cho loại này (giới hạn có chủ
+     đích, người dùng xác nhận) — CSDL mới cần quyết định có tách chi
+     tiết theo lô con hay không.
+  4. Công thức ĐN QÂ (`hao_hut = luong_CNchuaQA − ĐN_QÂ`, `hao_hut_qa
+     = ĐN_QÂ − luong_HD`) được xác nhận thêm 2 lần độc lập nữa (dòng
+     HĐ=2 trong `Hàng nhập 2026.xlsx` khớp tuyệt đối; dòng HĐ=1007
+     trong `HÀNG NHẬP T5.26-KD THAN TÂN ĐỨC.xlsx` khớp đúng số đã ghi
+     trước đó) — độ tin cậy công thức giờ rất cao (4 lần kiểm chứng
+     độc lập).
+  5. Cấu trúc `Hàng nhập 2026.xlsx` (header 33 cột dòng 3, cơ chế
+     VLOOKUP Biểu 8/Biểu 7/TD/TD-PT từ `NXT` qua sheet `Tên cám`, cấu
+     trúc `T<n> (DD)`) đã kiểm chứng khớp đúng bằng số thật.
+  6. `Tính tồn 2.xlsx`: đính chính vai trò `LK` (là **đầu vào**, không
+     phải bảng trung gian như ghi trước đây) + xác nhận `Result`/
+     `CheckKQ`/`Append1` bằng số thật + ghi nhận **quy tắc làm tròn
+     phân bổ mới** (rank theo delta làm tròn, bù 0,01) do người dùng
+     cung cấp trực tiếp — chưa từng có trong tài liệu cũ.
+  - Còn treo (chưa xác nhận, đã ghi vào `CLAUDE.md` mục 6): ý nghĩa
+    cột `C_TP`/`C_PT`/`PL`/`C_B8` trong sheet `CN`; điều kiện
+    `STTPA<0` trong query `Bán` của `THP_KVCP_2026.m`; mã `ĐHP`/`ĐTB`/
+    `ĐVA`; vai trò ~20 sheet ẩn mới thấy trong `Hàng nhập 2026.xlsx` và
+    3 sheet ẩn (`PAKK`/`PL`/`Sheet1`) trong `Tính tồn 2.xlsx`.
 
 ---
 

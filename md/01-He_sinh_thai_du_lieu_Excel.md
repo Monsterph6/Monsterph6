@@ -211,12 +211,48 @@ PyQt6 độc lập, không thuộc repo này). Việc nó làm:
   ĐN QÂ, không phải giá trị dùng để đối chiếu kế toán.
 - **Không phải than nào cũng cần ĐN QÂ** — chỉ **than nhập khẩu** mới
   cần quy ẩm; than nội địa (các loại Cám) và **phiếu điều chỉnh giá**
-  (chỉ chỉnh tiền, không liên quan lượng) vốn dĩ **không có** cột này,
-  đây là thiết kế đúng của dữ liệu nguồn, không phải thiếu sót cần
-  người dùng bổ sung — quan trọng khi thiết kế gate nhập liệu (không
-  được coi "thiếu ĐN QÂ" luôn luôn = "cần chặn lại chờ nhập tay").
+  vốn dĩ **không cần điền** cột này, đây là thiết kế đúng của dữ liệu
+  nguồn, không phải thiếu sót cần người dùng bổ sung — quan trọng khi
+  thiết kế gate nhập liệu (không được coi "thiếu ĐN QÂ" luôn luôn =
+  "cần chặn lại chờ nhập tay").
+  **Đính chính (2026-07-10, kiểm chứng bằng 3 file BKHN thật + file
+  gộp `Hàng nhập 2026.xlsx`)**: phát biểu "than nội địa không có cột
+  này" ở trên **không chính xác** — mẫu BKHN (`SK01 HP 5902...xlsx`,
+  than trong nước "Cám 5b.1") **vẫn có đủ khối cột** `Khối lượng thanh
+  toán đầu nguồn / KL nhập kho quy ẩm tiêu chuẩn / KL hao hụt nhập kho
+  / Hao hụt quy ẩm / Lượng thực nhập quy ẩm 8,5` (U31:Y31) — **cùng 1
+  mẫu form** với file nhập khẩu (`SK02 BN 2638 PHOENIX...xlsx`). Khác
+  biệt thật: cột "Hao hụt quy ẩm" **để trống** ở dòng than nội địa
+  (X34 trong SK01), có giá trị thật ở dòng than nhập khẩu (X39=73.59
+  trong SK02). Rà toàn bộ 18 dòng thật trong `HÀNG NHẬP T5.26-KD THAN
+  TÂN ĐỨC.xlsx`: mọi dòng "Than cám..." (nội địa) để trống cột "ĐN
+  QÂ", mọi dòng "Than nhiệt xuất xứ..." (nhập khẩu) đều được điền tay
+  — quy tắc nghiệp vụ "chỉ nhập khẩu mới cần ĐN QÂ" **vẫn đúng trong
+  thực tế vận hành**, chỉ sai ở chỗ nói mẫu form "không có cột" (mẫu
+  có sẵn cột cho cả 2 loại, chỉ khác ở việc điền hay không điền).
+- **Phát hiện mới (2026-07-10) — lý do THẬT SỰ vì sao ĐN QÂ phải nhập
+  tay**: đọc trực tiếp mã nguồn `bkhn_td_gui.py` (người dùng cung cấp)
+  và chạy thử `parse_file()` trên cả 2 file BKHN thật, phát hiện logic
+  tự tính `hao_hutQA` của tool **không đáng tin** ở cả 2 nhánh:
+  - Nhánh có nhãn "Phí kẹp" ở cột D (khớp SK01, than nội địa — trước
+    đây `TASK.md`/`md-01` ghi "chưa xác định được file nào rơi vào
+    nhánh này", nay đã có ví dụ thật): `hao_hutQA` bị **hard-code =
+    0.0**, không tính.
+  - Nhánh không có "Phí kẹp" (khớp SK02, than nhập khẩu): công thức
+    `hao_hutQA = luong_NK − luong_CNchuaQA` cho ra **0.0** vì 2 biến
+    này vô tình cùng trỏ tới 1 ô Excel (cột G, giá trị 1949.14 lặp lại
+    ở nhiều dòng chi phí trong bảng BKHN) — không phải 0 thật.
+  Tức **cả 2 nhánh của tool đều luôn cho `hao_hutQA=0.0`** dù lý do
+  khác nhau — đây là lý do cụ thể (không phải chỉ "thiếu cột") khiến
+  con người phải tự đọc số liệu quy ẩm thật (nằm sẵn ở khối cột U-Y
+  của chính sheet BKHN, vd X39=73.59 ở SK02) rồi gõ tay ĐN QÂ đúng.
+  Phần tính phụ phí (tiền than/VC/KC/BH/VCBX/cân than/vun gom) của
+  tool đã kiểm chứng khớp tuyệt đối 100% với dòng "Tổng cộng" ở cả 2
+  file — không có vấn đề, chỉ riêng phần lượng/quy ẩm là không đáng
+  tin cậy khi tự động.
 - Nguồn dữ liệu **tự động** cho "ĐN QÂ" (không phải công thức dùng nó)
-  **vẫn chưa xác định** — người dùng vẫn điền tay.
+  **vẫn chưa xác định** — người dùng vẫn điền tay, xác nhận lại đúng
+  vậy 2026-07-10.
 
 Ở thư mục `gopshetthuy` còn có các notebook biến thể theo trạm khác:
 `BKHN-TĐ.ipynb`, `BKHN-TĐ2.ipynb`, `BKHN-VC.ipynb`, `BKHN-VC2.ipynb`
@@ -260,6 +296,34 @@ Cấu trúc thật (khảo sát lại 2026-07-08 trên bản sao trực tiếp t
   sót — `VCBX | Cân than | Vun gon | AK | V | W | Q | S`. Đã sửa
   `ANH_XA_COT` để đọc đủ (model đã có sẵn field `vcbx`/`phicanthan`/
   `vun_gom`/`ak`/`vk`/`wtp`/`qk`/`sk` từ trước, chỉ chưa được điền).
+- **Header đầy đủ đã kiểm chứng bằng file thật (2026-07-10)**, đúng
+  33 cột dòng 3 của sheet `T1`: `Trạm | Biểu 8 | Biểu 7 | Kho | NXT |
+  Số HĐ | Ngày | Số PNK | CL | pt | Lg chưa QA | Lượng HĐ | Lượng đầu
+  nguồn QA | Lượng CN chưa QA | Lượng NK | HH | HHQA | Tiền than | T
+  CP | VC | BH | KC | VCBX | Cân than | Vun gon | AK | V | W | Q | S |
+  (cột trống) | TD | TD/PT`.
+- **Cơ chế VLOOKUP Biểu 8/Biểu 7/TD/TD-PT từ cột `NXT` qua sheet `Tên
+  cám` — đã xác nhận bằng số thật (2026-07-10)**, đúng như người dùng
+  mô tả: cột `NXT` là khoá tra cứu vào cột `Than tại NXT` của sheet
+  `Tên cám`; `Biểu 8`/`Biểu 7` lấy thẳng từ 2 cột cùng tên; `TD` lấy
+  từ cột `TD` (giá trị chuỗi `'TD'` hoặc rỗng, không phải boolean);
+  `TD/PT` lấy từ cột `Tên TD` khi có `TD`, ngược lại mặc định hiển thị
+  lại giá trị `Biểu 7`. Ví dụ đối chiếu đúng: dòng `NXT="Cám 4a.1"` →
+  `Tên cám` hàng tương ứng cho `Biểu 8=' - Cám 4a.1'`, khớp tuyệt đối
+  với dữ liệu trong `T1`; dòng `NXT="Cám 4b.1 BT (tự doanh)"` → `Tên
+  cám` có `TD='TD'`, khớp đúng cột `TD`/`TD-PT` trong `T1`.
+- **Sheet `T<n> (DD)` — đã kiểm chứng cấu trúc thật (2026-07-10)**:
+  không hiếm như ghi chú cũ ("hiếm khi cần nhập") — riêng `T1 (DD)` đã
+  có **23 dòng dữ liệu thật** trong 1 tháng. Header khác `T<n>` chính:
+  **không có cột "Lượng đầu nguồn QA"** (hợp lý — hàng đi đường chưa
+  nhập kho nên chưa có số liệu quy ẩm cuối cùng).
+- File thật còn có **~20 sheet ẩn khác chưa từng ghi trong tài liệu**:
+  `LastM`, `LastDD`, `Sheet4`, `LastT`, `CBC`, `Done`, `Sheet6`, `ĐG VC
+  mua`, `TH thang`, `TD`, `TD (2)`, `CB`, `CB (2)`, `TH`, `CL nhập`,
+  `Nhap1`, `T1  ` (có khoảng trắng cuối tên, khác `T1`), `2`, `3`,
+  `Sheet1`, `,,,`, `Sheet3` — có vẻ là bảng trung gian/pivot/nháp
+  Power Query cũ. **CHƯA XÁC NHẬN** vai trò, không ảnh hưởng luồng 2
+  chính (`T1`..`T12` + `T<n> (DD)` + `Tên cám`).
 
 ### 5d. Đối chiếu "Sổ chi tiết vật tư" (Module 1) ↔ "Hàng nhập" (Module 3) — xác nhận cách tính phụ phí Nhập
 
@@ -298,6 +362,41 @@ số HĐ **680**. So sánh sheet "GOLDEN STAR" trong `NXT Tân Đức 3.xlsx`
    `hang_nhap.phuong_tien`) thay vì tự suy luận lại từ các dòng rời
    rạc. Việc code lại `parse_sheet()` theo hướng này **chưa làm** —
    xem `TASK.md` Phase 0.4.
+
+### 5e. "Phiếu điều chỉnh" — đính chính (2026-07-10, sai so với ghi chú cũ)
+
+Ghi chú cũ (`CLAUDE.md` mục 5, `md-01` mục 5) từng khẳng định: *"phiếu
+điều chỉnh giá (chỉ chỉnh tiền, không liên quan lượng) vốn dĩ không có
+cột [ĐN QÂ]"*. Kiểm chứng bằng file thật `SK19 ĐC tăng lượng SIRIUS
+7.5.xlsx` (người dùng cung cấp) cho thấy **phát biểu này không đúng
+cho mọi trường hợp**:
+
+- Ô diễn giải (D8) của file ghi rõ: *"Điều chỉnh TĂNG KHỐI LƯỢNG,
+  thành tiền và tiền thuế theo hóa đơn số 1072..."* — tên file cũng
+  ghi rõ "ĐC tăng lượng". File có 3 dòng con theo phương tiện (`BN
+  2509`/`BN 2595`/`BN 2633`), tổng lượng thật **147,5 tấn** (không
+  phải 0).
+- Đối chiếu với `Hàng nhập 2026.xlsx` (bản gộp): dòng `so_HD=1072`
+  trong đó có **toàn bộ cột lượng = 0**, chỉ có `tien_than=459.201.130`
+  (khớp đúng tổng tiền của SK19) — 2 trong 3 phương tiện của SK19
+  (`BN 2595`, `BN 2633`) trùng đúng phương tiện của 2 dòng nhập đã có
+  sẵn trước đó trong cùng file (HĐ 970, HĐ 1006, cùng tàu STAR
+  SIRIUS) — xác nhận đây là **điều chỉnh tăng thêm lượng cho các lô đã
+  ghi nhận trước đó**, không phải 1 lô nhập độc lập.
+- **Đã xác nhận với người dùng đây là giới hạn có chủ đích, không phải
+  lỗi**: quy trình Excel hiện tại chỉ cần tổng tiền/tổng lượng của cả
+  phiếu điều chỉnh để đưa vào sổ, không cần tách theo từng lô con —
+  tool `bkhn_td_gui.py` phản ánh đúng nhu cầu đó.
+- **Ý nghĩa cho CSDL mới — CHƯA CHỐT, cần quyết định khi làm Module
+  3**: giữ nguyên hành vi cũ (1 giao dịch điều chỉnh ghi tổng tiền,
+  lượng=0, không gắn xuống lô gốc) hay tách chi tiết theo từng lô con
+  để cộng đúng lượng vào đúng lô gốc (chính xác hơn cho tồn kho/giá
+  vốn theo lô, nhưng cần nhập tay chi tiết hơn mức hiện tại). Không tự
+  chọn phương án — để người dùng quyết định.
+- Phát biểu đúng lại: **"phiếu điều chỉnh" là 1 NHÓM nhiều loại khác
+  nhau** (chỉnh giá thuần tuý, chỉnh cả lượng...), phải phân loại theo
+  nội dung diễn giải thực tế, không giả định mặc định là chỉ chỉnh
+  tiền.
 
 ## 6. Ghi chú tên các đối tượng nghiệp vụ
 
@@ -447,6 +546,53 @@ khớp tổng đầu vào theo (Tháng, Trạm, Sản phẩm) không — có 2 d
 mỗi sheet Result ghi rõ "Tháng X / Loại HHB (hoặc KK)" → xác nhận file
 này **chạy thủ công lại mỗi tháng, chọn tham số Tháng + Loại (HHB hay
 KK)**, không tự động hoá theo tháng.
+
+**Đính chính (2026-07-10, kiểm chứng bằng file thật do người dùng
+cung cấp)**: câu trên xếp `LK` chung nhóm "bảng trung gian" với
+`Append1`/`Append2` — **SAI**. Theo xác nhận của người dùng và đối
+chiếu số liệu thật: **`LK` là sheet ĐẦU VÀO** (Tháng, Trạm, Cám thành
+phẩm, Tồn, HHKK, HHB nhập tay theo kết quả kiểm kê thực tế) — khớp
+đúng vai trò bảng `KetQuaKiemKe` đã thiết kế ở Module 6, không phải
+bảng trung gian. `Append1`/`Append2` mới là trung gian luỹ kế thật.
+`Result` là **đầu ra** (kết quả phân bổ xuống từng dòng PA thành
+phần, layout `SPT, N_HD, N_PT, N_NT, Tram, Data.Column6 (than ra),
+Data.Column7 (than vào), L_100, Ak, Vk, Sk, Qk, Luong (lượng phân bổ),
+STTPA, Cảng, Tháng`, kèm 2 dòng header riêng ghi rõ `Tháng=X` /
+`Loại=HHB` (hoặc KK) đang chạy). `CheckKQ` đối chiếu tổng đầu vào
+(cột C, từ `LK`) với tổng phân bổ ra (cột D, SUM theo `Result`) —
+**đã thấy cả 2 trường hợp thật**: khớp tuyệt đối (`CC/5a.10 ĐHP`:
+9=9, chênh lệch=0) và **không khớp/thiếu dữ liệu PA để giải thích
+hết** (`VC/5a.14 ĐTB`: chỉ có tổng phân bổ ra, không có tổng đầu vào
+để so — cột chênh lệch bỏ trống) — xác nhận cơ chế cảnh báo
+`ton_chua_phan_bo`/`canh_bao` đã thiết kế ở Module 6 đang mô phỏng
+đúng 1 tình huống có thật, không phải giả định lý thuyết.
+
+Xác nhận thêm bằng số thật: 1 `STTPA` (1 phương án) có thể có **nhiều
+dòng thành phần đầu vào khác nhau** trong `Result` (vd STTPA=312, ra
+"5a.10 ĐHP", có 4 dòng `Data.Column7` khác nhau: Cám 5a.1/Cám
+5a.3/than Mozambique/Cám 6a.1, mỗi dòng 1 lượng phân bổ riêng) — khớp
+đúng mô hình `phuong_an` hiện tại (1 dòng = 1 cặp than ra + 1 than
+vào, nhiều dòng cùng SPT khi phối trộn nhiều nguồn).
+
+**Quy tắc làm tròn khi phân bổ — mới xác nhận (2026-07-10), CHƯA từng
+ghi trong tài liệu cũ** (không có trong Power Query M vì đây là công
+thức Excel tính tay ở `Append1`, không phải Get&Transform): sau khi
+`Append1` tính lượng phân bổ thô cho từng dòng PA (theo thứ tự waterfall
+đã mô tả ở trên) và làm tròn 2 chữ số mỗi dòng, tổng các dòng đã làm
+tròn có thể lệch khỏi tổng thực tế 1 khoản nhỏ (bội số của 0,01) do
+làm tròn cộng dồn. Cách xử lý: với mỗi dòng, tính
+`delta = giá_trị_đã_làm_tròn − giá_trị_gốc`, xếp hạng (rank) các dòng
+theo `delta`; nếu tổng làm tròn **thiếu** so với tổng thực → cộng
+0,01 lần lượt theo rank **xuôi**; nếu **thừa** → trừ 0,01 lần lượt
+theo rank **ngược**, cho tới khi tổng làm tròn khớp tổng thực. Đây là
+1 biến thể của "phương pháp số dư lớn nhất" (largest remainder
+method) quen thuộc trong bài toán phân bổ có làm tròn. **Đã xác nhận
+ở mức nguyên tắc**, chi tiết cài đặt (chiều rank khi 2 dòng bằng
+nhau, áp dụng cho cả 3 loại Tồn/HHKK/HHB hay chỉ áp dụng cho loại
+đang tính) để dành khi bắt đầu code Module 6.
+
+Ngoài các sheet đã liệt kê, file thật còn có thêm `PAKK`, `PL`,
+`Sheet1` (ẩn) — **CHƯA XÁC NHẬN** vai trò cụ thể.
 
 → **Ý nghĩa cho thiết kế CSDL**: đây là lý do cụ thể để **không** áp
 dụng tuyệt đối nguyên tắc "không lưu cứng số liệu suy ra được" — xem

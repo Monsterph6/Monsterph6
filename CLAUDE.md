@@ -88,6 +88,18 @@ buộc áp dụng tiếp** cho các module sau):
      (lưu tường minh 1 mốc, các kỳ sau tính tiếp từ đó) — không phải
      nguyên tắc mới, chỉ áp dụng cho lớp phân bổ/quyết toán thay vì
      lớp sổ chi tiết.
+   - **Quy tắc làm tròn khi phân bổ — xác nhận 2026-07-10** (từ người
+     dùng, đối chiếu đúng với sheet `Append1` của `Tính tồn 2.xlsx` —
+     xem `md/01-...md` mục 8): sau khi tính lượng phân bổ thô cho từng
+     dòng PA theo waterfall rồi làm tròn 2 chữ số, tổng các dòng đã
+     làm tròn có thể lệch khỏi tổng thực tế 1 khoản nhỏ (bội số 0,01).
+     Xử lý: tính `delta = giá_trị_đã_làm_tròn − giá_trị_gốc` cho từng
+     dòng, xếp hạng theo `delta`; nếu tổng làm tròn thiếu → cộng 0,01
+     lần lượt theo rank xuôi; nếu thừa → trừ 0,01 lần lượt theo rank
+     ngược, tới khi khớp tổng thực. Biến thể của "phương pháp số dư
+     lớn nhất". Đã xác nhận ở mức nguyên tắc, chi tiết cài đặt (tie-
+     break, áp dụng cho cả 3 loại Tồn/HHKK/HHB hay riêng từng loại) để
+     dành khi code Module 6.
 3. **Import phải idempotent + có `--dry-run`.** Chạy lại 1 file Excel
    đã import trước đó không được tạo trùng dữ liệu.
 4. **Dữ liệu kế toán không xoá cứng.** Soft delete (`deleted_at`) +
@@ -378,11 +390,36 @@ hao_hut    = luong_CNchuaQA − ĐN_QÂ
 hao_hut_qa = ĐN_QÂ − luong_HD
 ```
 **Không phải than nào cũng cần ĐN QÂ** — chỉ than **nhập khẩu**; than
-nội địa và phiếu điều chỉnh giá (chỉ chỉnh tiền) vốn dĩ không có cột
-này, đây là thiết kế đúng chứ không phải thiếu sót. **Đã xác nhận
-(2026-07-08): ĐN QÂ hiện điền tay, không có nguồn tự động** — đây
-không phải khoảng trống tạm thời, mà là cách làm việc thật, Module 3
-không cần chờ/thiết kế thêm cho việc này.
+nội địa vốn dĩ không cần điền cột này, đây là thiết kế đúng chứ không
+phải thiếu sót. **Đã xác nhận (2026-07-08): ĐN QÂ hiện điền tay, không
+có nguồn tự động** — đây không phải khoảng trống tạm thời, mà là cách
+làm việc thật, Module 3 không cần chờ/thiết kế thêm cho việc này.
+
+**Đính chính (2026-07-10, kiểm chứng bằng 3 file BKHN thật + mã nguồn
+`bkhn_td_gui.py` + file gộp thật)** — xem `md/01-...md` mục 5b để biết
+đầy đủ:
+- Mẫu BKHN **có sẵn cột quy ẩm cho cả than nội địa lẫn nhập khẩu**
+  (không phải "than nội địa không có cột" như viết trước đây) — khác
+  biệt thật chỉ là cột "Hao hụt quy ẩm" thường để trống ở dòng nội địa.
+- Lý do ĐN QÂ phải nhập tay: đã đọc mã nguồn `bkhn_td_gui.py` và chạy
+  thử `parse_file()` trên 2 file BKHN thật (1 nội địa, 1 nhập khẩu) —
+  logic tự tính `hao_hutQA` của tool **luôn cho ra 0.0** ở cả 2 nhánh
+  (1 nhánh hard-code 0, 1 nhánh bị lỗi trỏ trùng ô Excel khiến phép
+  trừ ra 0 dù không phải vậy) — không đáng tin, nên người dùng phải tự
+  đọc số liệu quy ẩm thật trong file rồi gõ tay. Phần tính phụ phí của
+  tool (tiền than/VC/KC/BH/VCBX/cân than/vun gom) đã kiểm chứng khớp
+  tuyệt đối, không có vấn đề.
+- **"Phiếu điều chỉnh giá chỉ chỉnh tiền, không liên quan lượng"** —
+  KHÔNG đúng cho mọi trường hợp. File thật `SK19 ĐC tăng lượng SIRIUS
+  7.5.xlsx` là 1 phiếu điều chỉnh **tăng cả khối lượng** (147,5 tấn,
+  chia 3 dòng con theo phương tiện, gắn vào các lô nhập đã có trước
+  đó). Tool hiện tại (`bkhn_td_gui.py`) chỉ lấy đúng tổng tiền của
+  loại phiếu này, bỏ qua lượng — **xác nhận đây là giới hạn có chủ
+  đích của người dùng** (Excel hiện tại chỉ cần tổng, không cần tách
+  theo lô con), không phải lỗi. **CHƯA CHỐT cho CSDL mới**: giữ hành
+  vi cũ (ghi 0 lượng, chỉ tổng tiền) hay tách chi tiết theo lô con để
+  cộng đúng lượng vào lô gốc — để người dùng quyết định khi làm Module
+  3, xem mục 6 dưới.
 
 Đã cài đặt (`app/services/hang_nhap.py`, `app/models_hang_nhap.py`,
 `import_excel/import_hang_nhap_luong1.py`,
@@ -493,6 +530,28 @@ hiểu ban đầu:**
   chỉ giữ vai trò tool hỗ trợ riêng cho Tân Đức, nơi đang dùng sẵn
   `bkhn_td_gui.py`.
 - ~~Sheet `(DD)`... chưa có module nào xử lý~~ **Đã xác nhận
-  (2026-07-08)**: hiếm khi cần nhập, khi cần thì nhập tay qua luồng 2
-  với `--sheet "T5 (DD)"` — code đã hỗ trợ sẵn (xem mục 5 phía trên),
-  không cần module riêng.
+  (2026-07-08)**: khi cần thì nhập tay qua luồng 2 với `--sheet "T5
+  (DD)"` — code đã hỗ trợ sẵn (xem mục 5 phía trên), không cần module
+  riêng. **Đính chính (2026-07-10)**: phát biểu "hiếm khi cần" **sai**
+  — kiểm chứng bằng file thật `Hàng nhập 2026.xlsx`, riêng `T1 (DD)`
+  đã có 23 dòng dữ liệu thật trong 1 tháng. Không đổi cách xử lý (vẫn
+  nhập tay qua `--sheet`), chỉ sửa lại mức độ thường xuyên.
+- **Mới phát sinh (2026-07-10), chưa xác nhận**:
+  1. Sheet `CN` (nguồn XCN/NCN theo lô, xem mục "việc chưa xác nhận"
+     phía trên) có các cột `C_TP`/`C_PT`/`PL`/`C_B8` chưa rõ ý nghĩa —
+     cần file `QTTPT 2026.xlsx` thật + hỏi kế toán.
+  2. `THP_KVCP_2026.m` query `Bán` nhân `L_TTT` (tồn đầu kỳ, không
+     phải `L_B`) với Ak/Vk/Sk/Qk, kèm điều kiện lọc `STTPA<0` — theo
+     `Index` query gốc `STTPA` luôn ≥ 1, nên điều kiện này khó hiểu.
+     Chưa rõ ý nghĩa thật của cột `B_Ak`/`B_Vk`/... trong ngữ cảnh này.
+  3. Mã trạm/khu vực viết tắt `ĐHP`/`ĐTB`/`ĐVA` xuất hiện trong
+     `THP_KVCP_2026.m` (named range `Bieu35a10 ĐHP`/`ĐTB`, `Bieu45a14
+     ĐHP`/`ĐTB`/`ĐVA`) — chưa xác nhận ý nghĩa.
+  4. Phiếu "điều chỉnh" khi có cả lượng thay đổi (không chỉ tiền) —
+     xem mục "Module 3" phía trên — CSDL mới nên ghi tổng (như Excel
+     hiện tại) hay tách theo lô con: **cần người dùng quyết định**.
+  5. ~20 sheet ẩn chưa rõ vai trò trong `Hàng nhập 2026.xlsx` (`LastM`,
+     `CBC`, `TD`, `CB`, `TH`, `TH thang`, `CL nhập`, `Nhap1`...) và 3
+     sheet ẩn trong `Tính tồn 2.xlsx` (`PAKK`, `PL`, `Sheet1`) — không
+     ảnh hưởng luồng chính đã xác nhận, nhưng chưa rõ có dữ liệu/công
+     thức nào cần dùng lại hay không.
