@@ -302,7 +302,31 @@ cập nhật 2026-07-09 (chi tiết từng việc xem `TASK.md`):
   `datetime`. Kiểm chứng bằng số thật: khớp tuyệt đối với sheet "NXT"
   tổng hợp sẵn trong file Excel (cả trước và sau khi sửa cột Ngày); sau
   khi sửa, 0 dòng còn bị bỏ qua do "không đọc được Ngày" (trước đó mất
-  ~15-20% giao dịch/tháng). Còn treo: join với
+  ~15-20% giao dịch/tháng).
+  **Đính chính quan trọng về vai trò 2 nguồn — xác nhận trực tiếp từ
+  người dùng (2026-07-10)**: trước đây hiểu sheet `NXT` (trong mỗi file
+  `NXT <Trạm> <tháng>.xlsx`) chỉ là nguồn **đối chiếu/kiểm chứng** cho
+  số liệu parse từ "Sổ chi tiết vật tư" (`giao_dich_kho`). **Không
+  đúng theo quy trình thật**: sheet `NXT` **là bảng tổng hợp do chính
+  kế toán từng trạm tự lập** (không phải chỉ là 1 giá trị suy ra để
+  kiểm tra) — công việc thật của người dùng (ứng với Module 5 "tổng
+  hợp liên trạm") là **gộp lại các sheet `NXT` này giữa các trạm**,
+  không phải tính lại từ sổ chi tiết vật tư. Nguyên văn xác nhận:
+  *"sheet NXT trong từng file ấy là tổng hợp của các nhân viên kế
+  toán, nhiệm vụ của tôi là tổng hợp lại. tôi chưa triển khai đến sổ
+  chi tiết vật tư để tổng hợp."*
+  **Ý nghĩa cho kiến trúc — cần sửa Module 5**: `tong_hop_lien_tram()`
+  hiện tính TRỰC TIẾP từ `giao_dich_kho` (xem `TASK.md` Phase 4) —
+  **không khớp đúng quy trình thật**. Nguồn chính thức cho "bảng NXT
+  tổng hợp liên trạm" phải là **sheet `NXT` đọc trực tiếp từ từng file
+  trạm** (cần thêm 1 import mới, chưa có), không phải suy ra từ giao
+  dịch chi tiết. "Sổ chi tiết vật tư" → `giao_dich_kho` (Module 1) vẫn
+  giữ nguyên giá trị riêng: lưu chứng từ chi tiết để **sau này in sổ
+  chi tiết** (nguyên văn người dùng), và tiếp tục dùng để **đối chiếu
+  chéo** với sheet NXT khi cần kiểm tra sai lệch — nhưng không còn là
+  nguồn tính bảng NXT/tồn kho báo cáo chính. Cần cập nhật lại
+  `app/services/tong_hop.py` khi code tiếp Module 5.
+  Còn treo: join với
   `hang_nhap.bh/.kc/.vcbx/.phicanthan/.vun_gom` (Module 3) để đặt tên
   chính xác phụ phí khi cột Đơn giá không phải text (hiện vẫn đúng số
   tiền, chỉ ghi tạm "Phụ phí chưa rõ tên").
@@ -380,7 +404,7 @@ trước):
 | 2 | ngân hàng tên than ✅ | sheet `Tên cám` (đã seed 2026-07-08, 223 `san_pham`), named range `Cam_B8` | — | `san_pham_alias` + cơ chế gate (mục 3) — còn thiếu: import `Cam_B8` (để dành Module 8) |
 | 3 | hàng nhập ✅ | `HÀNG NHẬP\...\<lô hàng>.xlsx` (BKHN) + `Hàng nhập 2026.xlsx` | Chứng từ lô hàng nhập (hoá đơn, BB giám định, BB giao nhận) | Sổ hàng nhập theo trạm/tháng, giá vốn than nhập — cả 2 luồng đã chạy được, đã kiểm chứng luồng 1 với 97 file thật; còn thiếu: map nốt vài cột chưa xác nhận ở luồng 2 (KL TT, Đơn giá...) |
 | 4 | phương án phối trộn (PA) ✅ | `Sổ theo dõi PA trạm 2026.xlsx` (sheet T1..T12) | Kế hoạch phối trộn: SPT, ngày HĐ/PT/NT, than vào/ra, Ak/Vk/Sk/Qk, khối lượng | Dữ liệu PA theo tháng, đầu vào cho tính hao hụt — đã kiểm chứng bằng 2322 dòng thật, còn thiếu: xác nhận công thức `L_B` với kế toán |
-| 5 | tổng hợp liên trạm ✅ service/API/frontend | `Tổng hợp NXT các trạm 2026.xlsx` (Power Query bị THAY THẾ) | Module 1 (mọi trạm) + Module 2 | NXT gộp toàn công ty theo (trạm, chủng loại), tính TRỰC TIẾP từ `giao_dich_kho` đã có — đầu vào cho BM7/BM8. **Chặn kiểm chứng bằng dữ liệu thật nhiều trạm** bởi lỗi cấu trúc còn treo ở `import_from_excel.py` (Module 1, xem `TASK.md` Phase 0.4) |
+| 5 | tổng hợp liên trạm 🔶 cần sửa nguồn dữ liệu | Sheet `NXT` trong từng file `NXT <Trạm> <tháng>.xlsx` (KHÔNG phải tính lại từ sổ chi tiết — xác nhận 2026-07-10) | Sheet `NXT` của mọi trạm (tự kế toán trạm lập) | NXT gộp toàn công ty theo (trạm, chủng loại) — đầu vào cho BM7/BM8. **Đính chính (2026-07-10)**: `tong_hop_lien_tram()` hiện tính từ `giao_dich_kho` là SAI nguồn — phải đổi sang đọc thẳng sheet `NXT`, xem mục 4 dưới. `giao_dich_kho` (từ sổ chi tiết vật tư) giữ vai trò riêng: lưu chứng từ chi tiết để in sổ sau này + đối chiếu chéo |
 | 6 | phân bổ Tồn/HHB/HHKK theo lô ✅ phần lõi | `QTTPT 2026\Tính tồn 2.xlsx` | Nhập tay: kết quả kiểm kê thực tế (Tồn, HHKK, HHB) theo (trạm, sản phẩm, tháng) + Module 4 (danh sách PA/lô) | Snapshot phân bổ theo kỳ: Tồn/HHB/HHKK chi tiết theo từng PA/lô, cờ đã chốt (thuật toán waterfall Tồn → HHKK → HHB đã cài đặt + test) — còn thiếu: kiểm chứng bằng dữ liệu thật, xác nhận nguồn L_XCN/L_NCN để tự tính tổng HHB (xem mục 4, mục 6 dưới) |
 | 7 | quyết toán than pha trộn (QTTPT) 🔶 mới 1 phần | `QTTPT 2026\QTTPT 2026.xlsx` | Module 3 + Module 4 + Module 6 | Bán (✅ tính theo lô xong) — còn thiếu: đọc bảng `CN` thật vào CSDL (cấu trúc đã xác nhận đầy đủ 2026-07-10, xem mục 6 dưới — chỉ còn thiếu code import), layout xuất báo cáo. **Giá vốn than: đã chốt (2026-07-09) KHÔNG tự động hoá — user vẫn tính tay.** |
 | 8 | cân bằng chất lượng 🔶 mới 1 phần | `Cân bằng chất.xlsx` (chính thức) → đích `THP.Biểu mẫu Quyết toán KVCP 2026.xlsx` sheet `DCCL` (xác nhận 2026-07-08) | Module 4 (Ak/Vk/Sk/Qk) + Module 6 + Module 7 | Bình quân gia quyền chất lượng than (✅ tính xong cho Tồn/Nhập/Bán) — còn thiếu: đối chiếu với sheet `DCCL` thật (chưa có file/M code để kiểm chứng) |

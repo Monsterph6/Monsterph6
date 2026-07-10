@@ -44,6 +44,23 @@ Lớp hạ tầng dùng chung
                                                  dẫn tuyệt đối khác nhau giữa các máy.
 ```
 
+**Đính chính quan trọng (2026-07-10) — 2 sheet cùng tên "NXT" khác
+nhau, đừng nhầm**: file Lớp 0 (`NXT <Trạm> <tháng>.xlsx`, mỗi trạm/
+tháng) **cũng có 1 sheet tên "NXT"** bên trong (ngoài các sheet "Sổ
+chi tiết vật tư" theo từng chủng loại) — đây **không phải cùng 1 sheet
+"NXT" ở Lớp 2** (`Tổng hợp NXT các trạm.xlsx`). Vai trò đã xác nhận
+trực tiếp từ người dùng: **sheet "NXT" ở Lớp 0 là bảng tổng hợp DO
+CHÍNH KẾ TOÁN TỪNG TRẠM TỰ LẬP** (không phải giá trị suy ra để đối
+chiếu) — công việc thật của người dùng (ứng với Module 5) là **gộp
+các sheet "NXT" Lớp 0 này lại giữa các trạm**, tương đương việc tạo ra
+sheet "NXT" ở Lớp 2. Việc Module 1 hiện tại parse "Sổ chi tiết vật tư"
+(không phải sheet "NXT") thành `giao_dich_kho` là 1 nỗ lực **khác**,
+chưa được dùng làm nguồn cho việc tổng hợp — nguyên văn xác nhận:
+*"sheet NXT trong từng file ấy là tổng hợp của các nhân viên kế toán,
+nhiệm vụ của tôi là tổng hợp lại. tôi chưa triển khai đến sổ chi tiết
+vật tư để tổng hợp."* Xem `CLAUDE.md` mục 4 + `TASK.md` Phase 4 để
+biết đầy đủ ý nghĩa cho kiến trúc Module 5.
+
 Quan trọng: **rất nhiều query M vẫn trỏ tới đường dẫn tuyệt đối đã hỏng**
 (vd. `C:\Users\phamh\OneDrive - Cong ty CP Kinh doanh than Mien Bac -
 Vinacomin\...`, `C:\Users\User\OneDrive\...`) — máy cũ, không còn tồn

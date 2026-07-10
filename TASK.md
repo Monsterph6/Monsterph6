@@ -14,7 +14,7 @@ mắc phát sinh lúc code mà chưa có trong `CLAUDE.md`. File này trả lờ
 | 1 | Module 2 — ngân hàng tên than (đầy đủ) | ✅ Xong (2026-07-09) — thêm reset đầu năm than nhập khẩu + gợi ý fuzzy-match; còn thiếu import `Cam_B8` (để dành Module 8) |
 | 2 | Module 3 — hàng nhập | ✅ Xong (2026-07-08) — cả 2 luồng đã kiểm chứng bằng file thật |
 | 3 | Module 4 — phương án phối trộn (PA) | ✅ Xong (2026-07-08) — đã kiểm chứng bằng 2322 dòng thật |
-| 4 | Module 5 — tổng hợp liên trạm | ✅ Service/API/frontend xong (2026-07-08) — Module 1 (parser) đã viết lại + kiểm chứng bằng số thật, sẵn sàng import dữ liệu nhiều trạm |
+| 4 | Module 5 — tổng hợp liên trạm | 🔶 **Sai nguồn dữ liệu (phát hiện 2026-07-10)** — code hiện tính từ `giao_dich_kho`, nhưng quy trình thật phải gộp từ sheet `NXT` (kế toán trạm tự lập) từng file trạm — cần viết lại nguồn import, xem Phase 4 |
 | 5 | Module 6 — phân bổ Tồn/HHB/HHKK theo lô | ✅ Xong phần lõi (2026-07-09) — test bằng dữ liệu tự tạo, chưa kiểm chứng bằng dữ liệu thật |
 | 6 | Module 7 — quyết toán than pha trộn (QTTPT) | 🔶 Mới có 1 phần: tính lượng bán (L_B) theo lô (2026-07-09) — giá vốn KHÔNG cần làm (user tính tay); XCN/NCN thật/layout xuất báo cáo chưa làm |
 | 7 | Module 8 — cân bằng chất lượng | 🔶 Mới có phần lõi: bình quân gia quyền Ak/Vk/Sk/Qk (2026-07-09) — chưa đối chiếu sheet DCCL thật |
@@ -501,6 +501,23 @@ docstring `import_excel/import_phuong_an.py`.
       — hiện chỉ kiểm chứng bằng dữ liệu tự tạo trong test. Cần sửa
       xong parser Module 1 trước khi coi Module 5 là "đã kiểm chứng
       bằng dữ liệu thật" như các module trước.
+- [ ] **SAI NGUỒN DỮ LIỆU — phát hiện quan trọng (2026-07-10), cần viết
+      lại**: `tong_hop_lien_tram()` hiện tính TRỰC TIẾP từ
+      `giao_dich_kho` (parse từ "Sổ chi tiết vật tư") — **không đúng
+      quy trình thật**. Xác nhận trực tiếp từ người dùng: sheet `NXT`
+      trong mỗi file trạm **là bảng tổng hợp do kế toán trạm tự lập**,
+      công việc thật (Module 5) là **gộp các sheet `NXT` này giữa các
+      trạm**, chưa hề dùng sổ chi tiết vật tư để tổng hợp. Xem
+      `CLAUDE.md` mục 4 để biết đầy đủ.
+      **Việc cần làm**: (1) viết import mới đọc thẳng sheet `NXT` của
+      từng file trạm (chưa có — Module 1 hiện chỉ parse "Sổ chi tiết
+      vật tư"), lưu thành 1 bảng/snapshot riêng theo (trạm, sản phẩm,
+      tháng); (2) đổi `tong_hop_lien_tram()` sang đọc từ bảng mới này;
+      (3) giữ nguyên `giao_dich_kho` cho 2 việc: lưu chứng từ chi tiết
+      để in sổ chi tiết sau này, và đối chiếu chéo với sheet `NXT` khi
+      cần kiểm tra sai lệch (không xoá công việc Module 1 đã làm, chỉ
+      đổi vai trò từ "nguồn chính" sang "dữ liệu chi tiết + đối
+      chiếu").
 - [ ] Đầu ra đúng layout cần cho Module 9 (BM7/BM8) — đã có field
       `nhom_bm7`/`nhom_bm8` sẵn sàng, nhưng bước GỘP THEO NHÓM (rollup
       nhiều `san_pham` cùng 1 nhóm thành 1 dòng báo cáo) chưa làm —
