@@ -270,6 +270,24 @@ PyQt6 độc lập, không thuộc repo này). Việc nó làm:
 - Nguồn dữ liệu **tự động** cho "ĐN QÂ" (không phải công thức dùng nó)
   **vẫn chưa xác định** — người dùng vẫn điền tay, xác nhận lại đúng
   vậy 2026-07-10.
+- **Đối chiếu mở rộng (2026-07-10)**: người dùng cung cấp toàn bộ 19
+  file BKHN thật tháng 5/2026 (thư mục `HÀNG NHẬP T5.26`), yêu cầu thử
+  suy ra nguồn ĐN QÂ tự động từ chính các file này. Đã đối chiếu công
+  thức `ĐN_QÂ ≈ U (Khối lượng thanh toán đầu nguồn) + X (Hao hụt quy
+  ẩm)` — 2 cột nằm sẵn trong khối U-Y đã tìm thấy ở mục 5b — với 11 lô
+  nhập khẩu có đủ dữ liệu trong file gộp `HÀNG NHẬP T5.26-KD THAN TÂN
+  ĐỨC.xlsx`. Kết quả: **khớp gần đúng nhưng KHÔNG tuyệt đối** — sai số
+  0,01–0,21 tấn (0,001%–0,012%), và **luôn lệch dương một chiều** (số
+  thật luôn cao hơn dự đoán, không bao giờ thấp hơn) — không phải
+  nhiễu ngẫu nhiên, gợi ý còn 1 khoản hiệu chỉnh nhỏ chưa xác định
+  được nguồn (có thể hao hụt bốc xếp hoặc bước làm tròn khác trong quy
+  trình thật, nằm ngoài file Excel). 7 lô than nội địa trong 19 file
+  đều có cột "Hao hụt quy ẩm" để trống — khớp đúng việc ĐN QÂ cũng để
+  trống ở file gộp, xác nhận thêm quy tắc "chỉ nhập khẩu mới cần".
+  **Kết luận**: KHÔNG đủ tin cậy để thay thế hoàn toàn nhập tay, nhưng
+  đủ tốt để dùng làm **gợi ý tự động điền sẵn** trong màn hình nhập
+  liệu (người dùng chỉnh sửa vài phần trăm nghìn thay vì gõ từ đầu) —
+  đây là đề xuất thiết kế, **chưa phải quyết định đã chốt**.
 
 Ở thư mục `gopshetthuy` còn có các notebook biến thể theo trạm khác:
 `BKHN-TĐ.ipynb`, `BKHN-TĐ2.ipynb`, `BKHN-VC.ipynb`, `BKHN-VC2.ipynb`

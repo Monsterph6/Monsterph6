@@ -437,6 +437,15 @@ nội địa vốn dĩ không cần điền cột này, đây là thiết kế �
 phải thiếu sót. **Đã xác nhận (2026-07-08): ĐN QÂ hiện điền tay, không
 có nguồn tự động** — đây không phải khoảng trống tạm thời, mà là cách
 làm việc thật, Module 3 không cần chờ/thiết kế thêm cho việc này.
+**Đã thử tìm nguồn tự động, không thành công (2026-07-10)** — đối
+chiếu 19 file BKHN thật (`HÀNG NHẬP T5.26`) với file gộp đã có ĐN QÂ:
+công thức `ĐN_QÂ ≈ Khối lượng thanh toán đầu nguồn + Hao hụt quy ẩm`
+(2 cột sẵn có trong chính file BKHN) chỉ khớp **gần đúng** (sai số
+0,01–0,21 tấn trên 11 lô, luôn lệch dương 1 chiều — không phải nhiễu
+ngẫu nhiên, có khoản hiệu chỉnh nhỏ chưa rõ nguồn). **Vẫn giữ nguyên
+kết luận: nhập tay** — nhưng công thức gần đúng này đủ tốt để dùng
+làm **gợi ý điền sẵn** (người dùng chỉnh sửa thay vì gõ từ đầu), xem
+`md/01-...md` mục 5b — đề xuất thiết kế, chưa chốt.
 
 **Đính chính (2026-07-10, kiểm chứng bằng 3 file BKHN thật + mã nguồn
 `bkhn_td_gui.py` + file gộp thật)** — xem `md/01-...md` mục 5b để biết
