@@ -839,12 +839,16 @@ cho mục đích cân bằng chất) — công thức chính xác của 5 cột 
 **vẫn CHƯA XÁC NHẬN**, nhưng phạm vi đã thu hẹp (chỉ liên quan tới
 `Cân bằng chất.xlsx`, không phải đầu ra chuẩn của Module 7).
 
-### 10d. Sheet `Quyết toán` — xác nhận tồn tại, chưa phân tích layout chi tiết
+### 10d. Sheet `Quyết toán` — xác nhận là đầu ra quan trọng (thống kê lãi/lỗ)
 
 `QTTPT 2026.xlsx` có sheet `Quyết toán`/`Quyết toán (T)` — văn bản
 chính thức "BIÊN BẢN VỀ VIỆC QUYẾT TOÁN GIÁ TRỊ MUA/BÁN THAN PTNK"
 theo quý, có căn cứ hợp đồng/công văn cụ thể, cấu trúc rất lớn (873
-dòng). **Chưa phân tích chi tiết layout cột** ở đợt khảo sát này (nằm
-ngoài phạm vi giai đoạn hiện tại — task yêu cầu "chưa cần lập trình
-xuất file", và giá vốn than đã chốt KHÔNG tự động hoá) — để dành khi
-thực sự bắt đầu code phần xuất báo cáo Module 7.
+dòng). **Đã xác nhận (2026-07-10, từ người dùng): đây là 1 biểu quyết
+toán phục vụ thống kê lãi/lỗ — một trong những đầu ra quan trọng
+nhất** của toàn hệ thống, không phải phụ — nâng mức ưu tiên so với
+đánh giá "ngoài phạm vi hiện tại" trước đây. **Sẽ bàn chi tiết layout/
+công thức ở phiên làm việc riêng** (người dùng xác nhận sẽ trao đổi
+dài) — chưa phân tích sâu ở đợt khảo sát này, nhưng KHÔNG còn coi là
+việc phụ/để-dành-sau-cùng như đã ghi trước đó. Xem `CLAUDE.md` mục 6
+để biết trạng thái theo dõi.

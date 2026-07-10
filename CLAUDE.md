@@ -570,9 +570,24 @@ hiểu ban đầu:**
   gần nhất lùi về trước.)
 - Flow gộp file hàng nhập theo lô → `Hàng nhập 2026.xlsx`: **đã xác
   nhận đầy đủ** (tool `bkhn_td_gui.py`, thiết kế 2 luồng, công thức
-  ĐN QÂ) — xem mục "Module 3 (hàng nhập)" ở mục 5 phía trên. Chỉ còn
-  treo: **nguồn dữ liệu để lấy `ĐN QÂ` tự động** (công thức DÙNG nó
-  thì đã xác nhận rồi) — người dùng sẽ cập nhật sau.
+  ĐN QÂ) — xem mục "Module 3 (hàng nhập)" ở mục 5 phía trên. Nguồn tự
+  động cho ĐN QÂ: **đã thử tìm và không thành công** (2026-07-10, xem
+  chi tiết ở mục 5 phía trên) — kết luận cuối: vẫn nhập tay, có gợi ý
+  điền sẵn gần đúng làm tuỳ chọn UX.
+- **Giả thuyết "phần lượng của phiếu điều chỉnh (SK19) thuộc về ĐN
+  QÂ" — đã kiểm chứng, KHÔNG đúng (2026-07-10)**: người dùng đề xuất
+  giả thuyết này, đã kiểm tra bằng số thật. `SK19 ĐC tăng lượng SIRIUS
+  7.5.xlsx` không có bất kỳ chữ "ẩm"/"quy ẩm" nào (rà toàn bộ sheet) —
+  chỉ có nhãn `D34="Điều chỉnh tăng giá do điều chỉnh NHIỆT"` (liên
+  quan Qk/nhiệt năng, khác trục với độ ẩm Wtp dùng cho ĐN QÂ). Về số
+  liệu: lô HĐ 970 (BN 2595, tàu STAR SIRIUS) được SK19 điều chỉnh tăng
+  +61,1 tấn — nếu khoản này nằm trong ĐN QÂ thì ĐN QÂ(970) phải ≈
+  2513,19 tấn, nhưng giá trị ĐN QÂ thật đã ghi trong file gộp là
+  2507,3 tấn — **gần với công thức tính từ file BKHN GỐC, CHƯA điều
+  chỉnh hơn nhiều** (lệch 0,16 tấn so với lệch 5,89 tấn nếu tính theo
+  giả thuyết). Kết luận: điều chỉnh lượng ở phiếu kiểu SK19 là 1
+  khoản hiệu chỉnh riêng (nhiều khả năng liên quan nhiệt năng/Qk),
+  KHÔNG phải nguồn của ĐN QÂ — 2 cơ chế độc lập nhau.
 - ~~File `Cân bằng chất.xlsx`...~~ **Đã xác nhận (2026-07-08)**:
   `Cân bằng chất.xlsx` là bản **chính thức**, phục vụ trực tiếp cho
   `THP.Biểu mẫu Quyết toán KVCP 2026.xlsx` — thể hiện ở sheet `DCCL`
@@ -608,8 +623,15 @@ hiểu ban đầu:**
   `Bán` thật trong `QTTPT 2026.xlsx` (không có 5 cột này) xác nhận đây
   là cột **chỉ có trong `Cân bằng chất.xlsx`** (tính thêm trên bản sao
   của `Bán`), không phải đầu ra chuẩn của Module 7 — công thức chính
-  xác vẫn **CHƯA XÁC NHẬN** nhưng phạm vi ảnh hưởng đã thu hẹp (chỉ
-  Module 8, không phải Module 7).
+  xác **ĐÃ XÁC NHẬN (2026-07-10, trực tiếp từ người dùng)**:
+  `B_Ak/B_Vk/B_Qk/B_Sk = L_B (lượng bán) × Ak/Vk/Qk/Sk` — tử số của
+  công thức bình quân gia quyền, đúng như đã suy luận ban đầu. **Quy
+  tắc làm tròn đi kèm**: `Ak`/`Vk`/`Sk` làm tròn **2 chữ số thập
+  phân**, riêng `Qk` làm tròn **0 chữ số** (số nguyên) — khớp đúng
+  định dạng đã thấy xuyên suốt dữ liệu thật (Qk luôn là số nguyên
+  dạng cal/g, vd 5865, 6432; Ak/Vk/Sk luôn 2 chữ số thập phân). Không
+  còn điểm treo — cần áp dụng đúng quy tắc làm tròn này khi code lại
+  bước hiệu chỉnh chất lượng ở Module 8.
   2. **Đã xác nhận trực tiếp từ người dùng (2026-07-10)**: điều kiện
      `STTPA<0` trong query `Bán` của `THP_KVCP_2026.m` **lọc ra các
      cám thành phẩm đã pha trộn từ tồn năm trước** — tức những dòng
@@ -646,4 +668,12 @@ hiểu ban đầu:**
      `CBC`, `TD`, `CB`, `TH`, `TH thang`, `CL nhập`, `Nhap1`...) và 3
      sheet ẩn trong `Tính tồn 2.xlsx` (`PAKK`, `PL`, `Sheet1`) — không
      ảnh hưởng luồng chính đã xác nhận, nhưng chưa rõ có dữ liệu/công
-     thức nào cần dùng lại hay không.
+     thức nào cần dùng lại hay không. **Cập nhật (2026-07-10)**: người
+     dùng xác nhận không nhớ hết kết cấu công thức, sẽ **cung cấp trực
+     tiếp các biểu xuất quan trọng** (đầu ra thật, không phải sheet
+     nháp) để khảo sát tận nơi thay vì suy đoán từ tên sheet — đang
+     chờ file, chưa cần tự tìm hiểu thêm ở giai đoạn này.
+  6. Sheet `Quyết toán`/`Quyết toán (T)` trong `QTTPT 2026.xlsx` —
+     **đã xác nhận là đầu ra quan trọng** (biểu quyết toán phục vụ
+     thống kê lãi/lỗ), sẽ bàn chi tiết layout/công thức ở phiên riêng
+     — xem `md/01-...md` mục 10d.

@@ -141,6 +141,14 @@ than, và UI paste-Excel.
          không flush trong `_lay_hoac_tao()` nữa, caller tự flush sau
          khi gán đủ cột bắt buộc (áp dụng cả cho `DoiTuong`, chưa bị
          test bắt nhưng cùng lỗi).
+         **Ghi chú (2026-07-10)**: đây là **duy nhất** chỗ `DoiTuong`
+         được nhắc tới trong toàn bộ tài liệu — chỉ là 1 model có
+         trong code `app/models.py` (không có trong repo này), không
+         rõ mục đích nghiệp vụ, và người dùng xác nhận "không có ấn
+         tượng với bảng này". Hạ mức độ ưu tiên xuống **không cấp
+         thiết** — không phải câu hỏi kiến trúc cần trả lời, chỉ cần
+         kiểm tra trực tiếp trong code thật (`app/models.py::DoiTuong`)
+         nếu sau này cần biết field/mục đích cụ thể.
       3. **Nghiêm trọng** — `app/services/ton_kho.py::ton_dau_ky()`:
          đệ quy lùi vô hạn về quá khứ khi có giao dịch nhưng CHƯA
          từng khai báo `TonDauKy` tường minh ở bất kỳ tháng nào (điều
