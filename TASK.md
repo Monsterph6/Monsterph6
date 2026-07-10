@@ -673,6 +673,20 @@ Thuật toán waterfall đã xác nhận — xem `CLAUDE.md` nguyên tắc #2 +
       đích đối chiếu là sheet `DCCL` trong `THP.Biểu mẫu Quyết toán
       KVCP 2026.xlsx` (không phải `Bieu8 canbangchat` như suy đoán ban
       đầu — xem `md/01-...md` mục 6)
+- [x] **Đã đối chiếu `DCCL` bằng file thật, khớp tuyệt đối (2026-07-10)**
+      — người dùng cung cấp trực tiếp `QTTPT 2026.xlsx` +
+      `THP.Biểu mẫu Quyết toán KVCP 2026.xlsx`. Xem `md/01-...md` mục
+      10b. Xác định chính xác: `DCCL` lấy dữ liệu từ khối cột **R-U**
+      của sheet `B8` (không phải N-Q) — quan trọng vì `B8` có nhiều
+      khối cột hiệu chỉnh liên tiếp, dễ nhầm khối. Đã kiểm chứng 1
+      dòng thật khớp tuyệt đối (Lượng/AK/Vk/Qk/Sk).
+- [x] **Sheet `CN` — đã tìm thấy bảng thật, giải quyết dứt điểm
+      (2026-07-10)**: nằm trong sheet `XCN` của `QTTPT 2026.xlsx`, đủ
+      21 cột. Cơ chế: 1 dòng = 1 giao dịch chuyển nguồn, chuyển lượng
+      của 1 thành phần từ tính-vào sản phẩm `C_TP` sang tính-vào sản
+      phẩm `C_CN`. Xem `md/01-...md` mục 10a + `CLAUDE.md` mục 6. Sẵn
+      sàng code Module 7 đọc bảng này (còn thiếu: viết
+      `import_excel` cho bảng `CN`, chưa bắt đầu).
 
 ---
 

@@ -722,3 +722,94 @@ chênh lệch Qk tương ứng trong bước hiệu chỉnh trên, nhưng **CHƯ
 NHẬN** công thức chính xác dùng bảng này ở đâu trong `B8`.
 
 Sheet `Sheet1`, `PL`, `THmuaKV` — **CHƯA XÁC NHẬN** vai trò cụ thể.
+
+## 10. `QTTPT 2026.xlsx` và `THP.Biểu mẫu Quyết toán KVCP 2026.xlsx` — đối chiếu bằng file thật (2026-07-10)
+
+Người dùng cung cấp trực tiếp cả 2 file quyết toán còn thiếu. Đã đọc
+bằng `openpyxl`, giải quyết dứt điểm các điểm chưa xác nhận liên quan
+tới sheet `CN` và `DCCL`.
+
+### 10a. Bảng `CN` thật — cấu trúc đầy đủ, giải mã cơ chế XCN/NCN
+
+Tìm thấy đúng bảng nguồn mà `QTTPT_2026.m` đọc qua
+`Excel.CurrentWorkbook(){[Name="CN"]}` — nằm trong **sheet `XCN`** của
+`QTTPT 2026.xlsx` (tên sheet và tên bảng Excel khác nhau — mẫu thường
+gặp). Cột đầy đủ: `SPT, N_HD, N_PT, N_NT, Tram, Data.Column6,
+Data.Column7, L_100, Ak, Vk, Sk, Qk, L_T, STTPA, Cảng, Tháng, C_TP,
+C_PT, PL, C_B8, C_CN`.
+
+Ví dụ dòng thật (SPT=5, trạm CC, tháng 1):
+```
+Data.Column6 (=C_TP) = "5a.10 ĐHP"
+Data.Column7          = "Cám 5b.1"
+C_PT  = "- Cám 5b.1 (Ak 31,01-35,00) (từ 01/01/2026 đến 05/03/2026)"
+C_B8  = "- Cám 5b.1 (Ak 31,01-35,00)"   (= C_PT bỏ khoảng thời gian)
+PL    = "TN"
+C_CN  = "5a.10 ĐTB"      ← KHÁC C_TP!
+L_T   = 3.69
+```
+
+**Cơ chế đã giải mã đầy đủ**: đối chiếu với `QTTPT_2026.m` dòng
+165-181 (`XCN` bỏ cột `C_CN`, giữ `Data.Column6`/`C_TP` làm sản phẩm
+gắn; `NCN` bỏ cột `Data.Column6`, đổi `C_CN` thành `Data.Column6` mới)
+— **1 dòng `CN` = 1 giao dịch chuyển nguồn, chuyển `L_T` tấn của 1
+thành phần (`Data.Column7`) từ đang được TÍNH VÀO sản phẩm `C_TP`
+sang TÍNH VÀO sản phẩm `C_CN`**. Khi tính `L_B` cho `C_TP` (ở đây
+"5a.10 ĐHP"), lượng này trừ đi (`−L_XCN`, coi là xuất khỏi 5a.10 ĐHP);
+khi tính `L_B` cho `C_CN` (ở đây "5a.10 ĐTB"), lượng này cộng vào
+(`+L_NCN`, coi là nhập vào 5a.10 ĐTB). Đúng với ý nghĩa nghiệp vụ đã
+xác nhận trực tiếp từ người dùng ở mục 6: XCN/NCN phục vụ việc
+**chuyển 1 lô đang tính cho đích bán này sang tính cho đích bán khác**
+(ở đây là chuyển từ "5a.10 ĐTB" sang "5a.10 ĐHP" — 2 đích bán khác
+nhau của cùng 1 sản phẩm gốc "5a.10").
+
+`STTPA=-1` cũng xuất hiện ở các dòng `CN` này (giống dòng "tồn năm
+trước" đã xác nhận ở mục 6) — hợp lý vì dòng chuyển nguồn cũng không
+phải 1 PA thật trong năm, dùng chung quy ước cờ âm.
+
+**Kết luận**: đóng điểm "chưa xác nhận cột C_PT/C_B8" ở `CLAUDE.md`
+mục 6 — công thức/ý nghĩa đã rõ. Việc còn lại chỉ là code Module 7 đọc
+đúng bảng `CN` này (đường dẫn tương tự Module 4 đọc PA — 1 dòng/lô).
+
+### 10b. `DCCL` — xác nhận layout thật + đối chiếu số khớp tuyệt đối với `B8`
+
+Layout thật của `DCCL` (trong `THP.Biểu mẫu Quyết toán KVCP
+2026.xlsx`): `Tháng | Thành phẩm | Than pha trộn | (cột trùng tên) |
+Lượng | AK | Vk | Qk | Sk` — 1 dòng = 1 (tháng, cám thành phẩm, cám
+thành phần cấu thành).
+
+**Đối chiếu số thật, khớp tuyệt đối** — dòng `Tháng=5, Thành phẩm="Cám
+6b.1 ĐHD", Than pha trộn="- Cám 5b.3 (Ak 31,01-35)"`: `DCCL` ghi
+`Lượng=11901.49, AK=34.17, Vk=4.1, Qk=5110, Sk=0.86`. Đối chiếu với
+sheet `B8` của `Cân bằng chất.xlsx` (mục 9c) cùng dòng (`Cám 6b.1
+ĐHD`/`- Cám 5b.3`, tháng 5): cột `E5=11901.49` (Lượng, khớp), và
+**khối cột R-U** (`S5=34.17, T5=4.1, U5=5110, V5=0.86`) — **khớp
+tuyệt đối** với `DCCL`. Đây là bằng chứng số xác định chính xác: `B8`
+có NHIỀU khối cột hiệu chỉnh liên tiếp (F-I thô, J-M delta, N-Q hiệu
+chỉnh bước 1...), và **khối R-U mới là kết quả CUỐI CÙNG cấp cho
+`DCCL`** — không phải khối N-Q như có thể nhầm khi đọc thoáng qua.
+
+**Kết luận**: đóng điểm "CHƯA đối chiếu được với `DCCL` thật" ở
+`TASK.md` Phase 7 — nay đã có căn cứ số liệu thật, đủ tin cậy để code
+Module 8 theo đúng layout và xác định đúng khối cột cần lấy.
+
+### 10c. `Bán2` (Cân bằng chất.xlsx) so với `Bán` (QTTPT 2026.xlsx thật)
+
+Sheet `Bán` trong `QTTPT 2026.xlsx` có cấu trúc **giống hệt** `Bán2`
+của `Cân bằng chất.xlsx` (mục 9b) TRỪ 5 cột cuối `B_Ak/B_Vk/B_Qk/
+B_Sk/Round` — xác nhận các cột này **không thuộc đầu ra gốc của
+`QTTPT_2026.m`**, mà là cột tính thêm riêng trong `Cân bằng chất.xlsx`
+(nhiều khả năng: bản sao của `Bán` được dán qua rồi tính thêm cột phụ
+cho mục đích cân bằng chất) — công thức chính xác của 5 cột này
+**vẫn CHƯA XÁC NHẬN**, nhưng phạm vi đã thu hẹp (chỉ liên quan tới
+`Cân bằng chất.xlsx`, không phải đầu ra chuẩn của Module 7).
+
+### 10d. Sheet `Quyết toán` — xác nhận tồn tại, chưa phân tích layout chi tiết
+
+`QTTPT 2026.xlsx` có sheet `Quyết toán`/`Quyết toán (T)` — văn bản
+chính thức "BIÊN BẢN VỀ VIỆC QUYẾT TOÁN GIÁ TRỊ MUA/BÁN THAN PTNK"
+theo quý, có căn cứ hợp đồng/công văn cụ thể, cấu trúc rất lớn (873
+dòng). **Chưa phân tích chi tiết layout cột** ở đợt khảo sát này (nằm
+ngoài phạm vi giai đoạn hiện tại — task yêu cầu "chưa cần lập trình
+xuất file", và giá vốn than đã chốt KHÔNG tự động hoá) — để dành khi
+thực sự bắt đầu code phần xuất báo cáo Module 7.

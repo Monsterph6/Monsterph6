@@ -337,10 +337,15 @@ cập nhật 2026-07-09 (chi tiết từng việc xem `TASK.md`):
   `app/services/can_bang_chat.py::can_bang_chat_theo_nhom_bm8()` +
   `frontend/can-bang-chat.html` — bình quân gia quyền Ak/Vk/Sk/Qk cho
   Tồn cuối/Nhập/Bán trong kỳ, gộp theo `nhom_bm8` (nhiều `san_pham`
-  cùng nhóm), dùng dữ liệu đã có từ Module 4 + 6 + 7. **CHƯA đối chiếu
-  được với số thật**: `Cân bằng chất.xlsx` không có Power Query M nên
-  không có căn cứ xác nhận đúng layout/công thức sheet `DCCL` — xem
-  `TASK.md` Phase 7.
+  cùng nhóm), dùng dữ liệu đã có từ Module 4 + 6 + 7.
+  **Đã đối chiếu `DCCL` bằng file thật (2026-07-10), khớp tuyệt đối**
+  — xem `md/01-...md` mục 10b: layout `DCCL` = `Tháng | Thành phẩm |
+  Than pha trộn | Lượng | AK | Vk | Qk | Sk`, đối chiếu 1 dòng thật
+  (tháng 5, "Cám 6b.1 ĐHD" / "- Cám 5b.3") khớp tuyệt đối với khối cột
+  **R-U** (không phải N-Q) của sheet `B8` trong `Cân bằng chất.xlsx` —
+  xác định chính xác khối cột nào là kết quả cuối cùng trong số nhiều
+  khối hiệu chỉnh liên tiếp của `B8`. Không còn "chưa đối chiếu được
+  với số thật" nữa.
   **Phát hiện quan trọng (2026-07-10), đã đối chiếu bằng file thật**:
   quy trình thật KHÔNG dừng ở bình quân gia quyền đơn thuần — có thêm
   1 bước **hiệu chỉnh chất lượng từng cám thành phần cho khớp với
@@ -377,7 +382,7 @@ trước):
 | 4 | phương án phối trộn (PA) ✅ | `Sổ theo dõi PA trạm 2026.xlsx` (sheet T1..T12) | Kế hoạch phối trộn: SPT, ngày HĐ/PT/NT, than vào/ra, Ak/Vk/Sk/Qk, khối lượng | Dữ liệu PA theo tháng, đầu vào cho tính hao hụt — đã kiểm chứng bằng 2322 dòng thật, còn thiếu: xác nhận công thức `L_B` với kế toán |
 | 5 | tổng hợp liên trạm ✅ service/API/frontend | `Tổng hợp NXT các trạm 2026.xlsx` (Power Query bị THAY THẾ) | Module 1 (mọi trạm) + Module 2 | NXT gộp toàn công ty theo (trạm, chủng loại), tính TRỰC TIẾP từ `giao_dich_kho` đã có — đầu vào cho BM7/BM8. **Chặn kiểm chứng bằng dữ liệu thật nhiều trạm** bởi lỗi cấu trúc còn treo ở `import_from_excel.py` (Module 1, xem `TASK.md` Phase 0.4) |
 | 6 | phân bổ Tồn/HHB/HHKK theo lô ✅ phần lõi | `QTTPT 2026\Tính tồn 2.xlsx` | Nhập tay: kết quả kiểm kê thực tế (Tồn, HHKK, HHB) theo (trạm, sản phẩm, tháng) + Module 4 (danh sách PA/lô) | Snapshot phân bổ theo kỳ: Tồn/HHB/HHKK chi tiết theo từng PA/lô, cờ đã chốt (thuật toán waterfall Tồn → HHKK → HHB đã cài đặt + test) — còn thiếu: kiểm chứng bằng dữ liệu thật, xác nhận nguồn L_XCN/L_NCN để tự tính tổng HHB (xem mục 4, mục 6 dưới) |
-| 7 | quyết toán than pha trộn (QTTPT) 🔶 mới 1 phần | `QTTPT 2026\QTTPT 2026.xlsx` | Module 3 + Module 4 + Module 6 | Bán (✅ tính theo lô xong) — còn thiếu: XCN/NCN thật (nguồn = sheet `CN`, cột chưa xác nhận), layout xuất báo cáo. **Giá vốn than: đã chốt (2026-07-09) KHÔNG tự động hoá — user vẫn tính tay.** |
+| 7 | quyết toán than pha trộn (QTTPT) 🔶 mới 1 phần | `QTTPT 2026\QTTPT 2026.xlsx` | Module 3 + Module 4 + Module 6 | Bán (✅ tính theo lô xong) — còn thiếu: đọc bảng `CN` thật vào CSDL (cấu trúc đã xác nhận đầy đủ 2026-07-10, xem mục 6 dưới — chỉ còn thiếu code import), layout xuất báo cáo. **Giá vốn than: đã chốt (2026-07-09) KHÔNG tự động hoá — user vẫn tính tay.** |
 | 8 | cân bằng chất lượng 🔶 mới 1 phần | `Cân bằng chất.xlsx` (chính thức) → đích `THP.Biểu mẫu Quyết toán KVCP 2026.xlsx` sheet `DCCL` (xác nhận 2026-07-08) | Module 4 (Ak/Vk/Sk/Qk) + Module 6 + Module 7 | Bình quân gia quyền chất lượng than (✅ tính xong cho Tồn/Nhập/Bán) — còn thiếu: đối chiếu với sheet `DCCL` thật (chưa có file/M code để kiểm chứng) |
 | 9 | biểu mẫu quyết toán tổng | `Quyết toán\Bao cáo NXT Biểu 07-TMB-print.xlsx` (BM7), `Quyết toán\Biểu 08 TMB-print.xlsx` (BM8), `THỐNG KÊ\Báo cáo NXT TD-CB (tháng)-print.xlsx` (BM PT/TD) — đích thật xác nhận 2026-07-08, xem mục 6 `md/01-...md` | Module 5, 7, 8 | Xuất Excel/PDF đúng layout: BM7 = NXT theo danh mục than (toàn công ty), BM8 = NXT theo trạm/cửa hàng, BM PT/TD = mẫu Tập đoàn tách Tự doanh/Pha trộn |
 
@@ -554,19 +559,24 @@ hiểu ban đầu:**
   — kiểm chứng bằng file thật `Hàng nhập 2026.xlsx`, riêng `T1 (DD)`
   đã có 23 dòng dữ liệu thật trong 1 tháng. Không đổi cách xử lý (vẫn
   nhập tay qua `--sheet`), chỉ sửa lại mức độ thường xuyên.
-- **Mới phát sinh (2026-07-10), chưa xác nhận**:
-  1. Sheet `CN` (nguồn XCN/NCN theo lô) có các cột `C_TP`/`C_PT`/`PL`/
-     `C_B8` — **đã giải mã 1 phần (2026-07-10)** bằng cách đối chiếu
-     sheet `Bán2` trong `Cân bằng chất.xlsx` (cùng layout các cột
-     này): `PL` = `"TN"` (Trong Nước) / `"NK"` (Nhập Khẩu), khớp thẳng
-     field `san_pham.nguon_goc`; `C_TP` = tên sản phẩm đầu ra; `C_PT`/
-     `C_B8` = nhãn đầy đủ/rút gọn của thành phần đầu vào. Còn 2 cột
-     `C_TP` (đã rõ) không còn treo; cột `C_B8`/`C_PT` **công thức
-     chính xác cách sinh ra** (chuỗi ghép từ đâu, khoảng thời gian
-     hiệu lực Ak lấy từ nguồn nào) **vẫn CHƯA XÁC NHẬN** — xem
-     `md/01-...md` mục 9b. `B_Ak`/`B_Vk`/`B_Qk`/`B_Sk` (cột mới thấy
-     trong `Bán2`, nghi ngờ = lượng bán × chỉ tiêu chất lượng theo lô)
-     **CHƯA XÁC NHẬN công thức chính xác**.
+- **Bảng `CN` — ĐÃ GIẢI QUYẾT DỨT ĐIỂM (2026-07-10)**, xem `md/01-...md`
+  mục 10a để biết đầy đủ. Tìm thấy đúng bảng thật (sheet `XCN` trong
+  `QTTPT 2026.xlsx`, tên bảng Excel bên trong = `CN`), đủ 21 cột. Cơ
+  chế: **1 dòng `CN` = 1 giao dịch chuyển nguồn**, chuyển `L_T` tấn
+  của 1 thành phần (`Data.Column7`) từ đang tính vào sản phẩm `C_TP`
+  (=`Data.Column6`) sang tính vào sản phẩm `C_CN` — ví dụ thật: chuyển
+  từ "5a.10 ĐTB" (`C_CN`) sang "5a.10 ĐHP" (`C_TP`), đúng ý nghĩa
+  "chuyển nguồn phục vụ phân loại theo đích bán" đã xác nhận ở mục
+  trên. `C_PT` = nhãn đầy đủ thành phần kèm khoảng thời gian hiệu lực
+  Ak; `C_B8` = bản rút gọn (bỏ khoảng thời gian); `PL`=TN/NK đã rõ từ
+  trước. Không còn điểm treo nào ở bảng `CN` — sẵn sàng code Module 7
+  đọc bảng này (1 dòng/lô, giống cách Module 4 đọc PA).
+  Riêng `B_Ak`/`B_Vk`/`B_Qk`/`B_Sk`/`Round` — đối chiếu thêm sheet
+  `Bán` thật trong `QTTPT 2026.xlsx` (không có 5 cột này) xác nhận đây
+  là cột **chỉ có trong `Cân bằng chất.xlsx`** (tính thêm trên bản sao
+  của `Bán`), không phải đầu ra chuẩn của Module 7 — công thức chính
+  xác vẫn **CHƯA XÁC NHẬN** nhưng phạm vi ảnh hưởng đã thu hẹp (chỉ
+  Module 8, không phải Module 7).
   2. **Đã xác nhận trực tiếp từ người dùng (2026-07-10)**: điều kiện
      `STTPA<0` trong query `Bán` của `THP_KVCP_2026.m` **lọc ra các
      cám thành phẩm đã pha trộn từ tồn năm trước** — tức những dòng
