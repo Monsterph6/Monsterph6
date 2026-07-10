@@ -585,11 +585,17 @@ hiểu ban đầu:**
      phần của TÊN BIẾN THỂ sản phẩm (giống `ĐHD` ở "Cám 6b.1 ĐHD") —
      đã thấy đúng các tên này lặp lại xuyên suốt `LK`/`Result`/`CLB`/
      `Bán2` (vd "5a.10 ĐTB", "5a.14 ĐHP", "5a.14 ĐVA") làm tên `Cam_TP`
-     (cám thành phẩm). Không còn là điểm treo ở mức cấu trúc — ý nghĩa
-     chữ viết tắt `ĐHP`/`ĐTB`/`ĐVA`/`ĐHD` cụ thể là gì (tên viết tắt
-     kho/khu vực hay quy ước nội bộ khác) vẫn **CHƯA XÁC NHẬN**, nhưng
-     không ảnh hưởng thiết kế (chỉ là 1 chuỗi tên sản phẩm, không cần
-     giải mã ý nghĩa từng chữ để lưu đúng vào `san_pham`).
+     (cám thành phẩm). **Đã xác nhận thêm ý nghĩa NGHIỆP VỤ (2026-07-10,
+     từ người dùng)**: hậu tố `ĐHP`/`ĐTB`/`ĐVA` dùng để **biết bán cho
+     đâu** — tức phân biệt cùng 1 chủng loại than (cùng khoảng Ak) theo
+     **đích bán/kênh bán khác nhau**, không phải biến thể chất lượng
+     hay kho vật lý. Cơ chế **chuyển nguồn (XCN/NCN) cũng phục vụ trực
+     tiếp việc phân loại theo đích bán này** — khi 1 lô cần chuyển từ
+     nguồn/trạm này sang phục vụ đích bán khác, ghi nhận qua XCN/NCN.
+     Ý nghĩa chữ viết tắt cụ thể (`ĐHP`/`ĐTB`/`ĐVA`/`ĐHD` là viết tắt
+     của đích bán/khách hàng nào) vẫn **CHƯA XÁC NHẬN**, nhưng không
+     ảnh hưởng thiết kế `san_pham` (chỉ cần lưu đúng chuỗi tên, không
+     cần giải mã từng chữ viết tắt).
   4. Phiếu "điều chỉnh" khi có cả lượng thay đổi (không chỉ tiền) —
      xem mục "Module 3" phía trên — CSDL mới nên ghi tổng (như Excel
      hiện tại) hay tách theo lô con: **cần người dùng quyết định**.
