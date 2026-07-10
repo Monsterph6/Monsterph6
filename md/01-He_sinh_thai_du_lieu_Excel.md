@@ -473,6 +473,36 @@ không phải input cho bất kỳ module import nào.
   hợp `Biểu NXT (điện)`, `Biểu NXT (tự doanh)`, `Biểu NXT (tổng)`,
   `PT_G`/`TD_G` (gộp), `NXT-TD`/`NXT-PT`.
 
+**Đã xác nhận thêm với người dùng (2026-07-10)** — 3 điểm còn treo từ
+`QTTPT_2026.m`/`THP_KVCP_2026.m` (xem mục 8-9 và `CLAUDE.md` mục 6):
+
+- **Sheet `CN`** (nguồn `L_XCN`/`L_NCN` theo lô, dùng trong
+  `QTTPT_2026.m`) **chính là bảng GỘP (union) của `X_CN` và `N_CN`** —
+  2 tập dòng dữ liệu Xuất chuyển nguồn/Nhập chuyển nguồn được lưu
+  chung 1 sheet, không phải "2 cách đọc khác nhau của cùng 1 dòng" như
+  suy đoán ban đầu ở mục 8/`CLAUDE.md`.
+- **Điều kiện `STTPA<0`** trong query `Bán` của `THP_KVCP_2026.m`
+  **lọc ra các cám thành phẩm đã pha trộn từ tồn năm trước** — những
+  dòng không có 1 phương án (PA) thật trong năm hiện tại để đánh số
+  `STTPA` dương (qua `Index` query), nên được gán 1 giá trị âm làm cờ
+  đánh dấu "hàng tồn năm trước". Giải thích được vì sao công thức nhân
+  `L_TTT` (tồn đầu kỳ) chứ không phải `L_B` (lượng bán) — với nhóm này
+  "tồn đầu kỳ" mới là số lượng còn ý nghĩa để tính bình quân gia quyền
+  chất lượng.
+- **`Bieu35a10`/`Bieu45a14`** (named range trong `THP_KVCP_2026.m`) là
+  **các biểu báo cáo riêng theo TỪNG CÁM THÀNH PHẨM** (Biểu 35 dành
+  cho sản phẩm "5a.10", Biểu 45 dành cho "5a.14") — không phải mã
+  trạm/khu vực như suy đoán ban đầu. Hậu tố `ĐHP`/`ĐTB`/`ĐVA` (và
+  `ĐHD` ở "Cám 6b.1 ĐHD") là phần TÊN BIẾN THỂ sản phẩm, **dùng để
+  biết bán cho đâu** — phân biệt cùng 1 chủng loại than (cùng khoảng
+  Ak) theo **đích bán/kênh bán khác nhau**, không phải biến thể chất
+  lượng hay kho vật lý khác nhau. Cơ chế **chuyển nguồn (XCN/NCN) phục
+  vụ trực tiếp việc phân loại theo đích bán này** — khi 1 lô cần
+  chuyển từ nguồn/trạm này sang phục vụ đích bán khác thì ghi nhận qua
+  XCN/NCN. Ý nghĩa chữ viết tắt cụ thể (`ĐHP`/`ĐTB`/`ĐVA`/`ĐHD` là
+  viết tắt của đích bán/khách hàng nào) **vẫn CHƯA XÁC NHẬN**, nhưng
+  không ảnh hưởng thiết kế `san_pham` (chỉ cần lưu đúng chuỗi tên).
+
 ## 7. File Power Query M gốc đã trích xuất
 
 Lưu tại `md/power_query/`:
