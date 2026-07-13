@@ -600,6 +600,25 @@ Thuật toán waterfall đã xác nhận — xem `CLAUDE.md` nguyên tắc #2 +
 - [ ] Frontend `phan-bo.html` mới smoke-test qua `curl`/API, CHƯA tự
       thao tác qua trình duyệt thật (chọn dropdown, bấm nút, xem bảng
       kết quả) — nên làm trước khi giao người dùng thật sử dụng.
+- [ ] **VIỆC MỚI, ƯU TIÊN CAO (2026-07-10) — thiết kế đầy đủ, sẵn sàng
+      code**: thay bước phân bổ HHB hiện tại (dồn vào PA gần nhất còn
+      dư chỗ) bằng thuật toán **nắn theo `Qk_CLB`** (chất lượng bán
+      thực đo) — người dùng chủ động yêu cầu, xác nhận muốn code module
+      này TRƯỚC để áp dụng sớm. Toàn bộ pseudocode + giá trị mặc định
+      (sai số dừng 0,5; bước dịch chuyển 1% HHB_tổng; giới hạn 500
+      vòng lặp) + yêu cầu ghi audit đã viết đầy đủ ở `md/01-...md` mục
+      11. Việc cần làm:
+      1. Sửa `phan_bo_waterfall()` — thay bước 3 (HHB) theo thuật toán
+         mới, giữ nguyên bước 1-2 (Tồn/HHKK).
+      2. Thêm trường lưu audit (số vòng lặp, hội tụ hay dừng vì hết dư
+         địa, Qk trước/sau nắn) vào `PhanBoSnapshot`.
+      3. Test bằng dữ liệu tự tạo trước — sau đó **kiểm chứng gián
+         tiếp bằng dữ liệu thật** (so Qk bình quân ra có sát `CLB.Qk`
+         hơn cách cũ không), vì thuật toán này KHÔNG có trong Excel
+         gốc để đối chiếu trực tiếp (khác Tồn/HHKK).
+      4. Không cần sửa `tinh_luong_ban_theo_lo()` (Module 7) hay
+         `can_bang_chat_theo_nhom_bm8()` (Module 8) — cả 2 vẫn đọc
+         đúng cấu trúc `PhanBoChiTiet` cũ, chỉ giá trị bên trong đổi.
 
 ---
 

@@ -100,6 +100,15 @@ buộc áp dụng tiếp** cho các module sau):
      lớn nhất". Đã xác nhận ở mức nguyên tắc, chi tiết cài đặt (tie-
      break, áp dụng cho cả 3 loại Tồn/HHKK/HHB hay riêng từng loại) để
      dành khi code Module 6.
+   - **Thiết kế mới (2026-07-10) — phân bổ HHB có nắn theo Qk**: thay
+     bước phân bổ HHB cũ ("dồn vào PA gần nhất còn dư chỗ") bằng thuật
+     toán chủ động nắn theo `Qk_CLB` (chất lượng bán thực đo) — người
+     dùng xác nhận chủ ý muốn vậy, dù biết đây là đánh đổi (HHB từ số
+     liệu khách quan thành biến điều chỉnh theo mục tiêu chất lượng).
+     Thiết kế đầy đủ (pseudocode, giá trị mặc định, yêu cầu audit) đã
+     viết ở `md/01-...md` mục 11 — **sẵn sàng code**, chưa có trong
+     Excel gốc nên chưa thể đối chiếu trực tiếp, cần kiểm chứng gián
+     tiếp bằng số thật sau khi code xong.
 3. **Import phải idempotent + có `--dry-run`.** Chạy lại 1 file Excel
    đã import trước đó không được tạo trùng dữ liệu.
 4. **Dữ liệu kế toán không xoá cứng.** Soft delete (`deleted_at`) +
