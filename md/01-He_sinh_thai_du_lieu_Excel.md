@@ -853,12 +853,17 @@ dài) — chưa phân tích sâu ở đợt khảo sát này, nhưng KHÔNG còn
 việc phụ/để-dành-sau-cùng như đã ghi trước đó. Xem `CLAUDE.md` mục 6
 để biết trạng thái theo dõi.
 
-## 11. Thiết kế mới — phân bổ HHB có nắn theo Qk (mở rộng Module 6, đề xuất 2026-07-10, sẵn sàng code)
+## 11. Thiết kế mới — phân bổ HHB qua 2 giai đoạn (gợi ý + chỉnh tay, rồi cascade xuống PA) (mở rộng Module 6, đề xuất 2026-07-10, sẵn sàng code)
 
 **Khác với mọi mục trên (khảo sát dữ liệu có sẵn), mục này là 1 THIẾT
 KẾ MỚI do người dùng chủ động yêu cầu** — không có trong Excel gốc để
 đối chiếu, cần kiểm chứng bằng dữ liệu thật sau khi code xong, giống
 quy trình đã áp dụng cho mọi module trước.
+
+**Đã thiết kế lại (2026-07-10, cùng ngày)** — bản đầu tiên (thuật toán
+vòng lặp tự động dịch chuyển HHB giữa các PA để nắn `Qk`) đã bị
+**RÚT LẠI, không dùng nữa** sau khi người dùng làm rõ luồng thao tác
+thật. Giữ lại đoạn này trong lịch sử để không lặp lại hướng đã loại.
 
 ### Bối cảnh / lý do
 
@@ -867,107 +872,83 @@ lượng cần phân bổ") có nhược điểm: dồn HHB vào rất ít PA (t
 PA cuối), khiến bình quân gia quyền chất lượng của "Bán" (dùng cho
 `DCCL`, Module 8) dễ bị lệch xa so với chất lượng bán thực đo (`CLB`)
 — vì phần lớn PA không hề bị trừ HHB nên đóng góp quá nhiều vào bình
-quân, trong khi 1-2 PA bị dồn hết HHB lại đóng góp quá ít, không phản
-ánh đúng thực tế hao hụt xảy ra rải khắp cả đống than đã trộn.
+quân, trong khi 1-2 PA bị dồn hết HHB lại đóng góp quá ít.
 
-**Người dùng xác nhận muốn đi xa hơn "chia đều khách quan"**: chủ
-động **nắn lượng HHB phân bổ theo Qk mục tiêu** (`CLB.Qk` — chất
-lượng bán thực đo) — nguyên văn: *"cái tôi muốn là nắn lượng hhb theo
-chất lượng bán. ít ra nắn nhiệt Qk."* Đây là lựa chọn có chủ đích,
-biến `HHB` (vốn là số liệu kế toán khách quan) thành 1 biến được điều
-chỉnh theo mục tiêu chất lượng — người dùng đã được cảnh báo rõ đánh
-đổi này và xác nhận vẫn muốn làm.
+Người dùng muốn **nắn lượng HHB theo chất lượng bán** (ít nhất là
+`Qk`) — nhưng qua làm rõ thêm, đây là **thao tác THỦ CÔNG ở mức cám
+thành phẩm**, không phải 1 thuật toán tự động giải ngược ở mức PA như
+bản thiết kế đầu tiên đã đề xuất nhầm. Bản chất giống hệt bước hiệu
+chỉnh B8 đã biết (mục 9c) — chỉ khác là nắn **lượng HHB** (ở mức cám
+thành phẩm, trước khi xuống PA) thay vì nắn trực tiếp **số liệu chất
+lượng** (ở mức PA, sau khi đã có L_B).
 
-**Giới hạn toán học cần lưu ý**: không thể khớp tuyệt đối cả 4 chỉ
-tiêu Ak/Vk/Sk/Qk cùng lúc chỉ bằng cách chọn phân bổ HHB (bài toán
-thiếu ràng buộc — nhiều PA, chỉ 4 phương trình mục tiêu). Vì vậy chỉ
-nắn theo **Qk** (chỉ tiêu quan trọng nhất về mặt thương mại — giá than
-thường tính chủ yếu theo nhiệt năng, xem thêm bảng hệ số ở sheet
-`Tính Q` của `Cân bằng chất.xlsx`, mục 9c). Phần dư của Ak/Vk/Sk (và
-phần dư Qk nếu vòng lặp không hội tụ hết) vẫn xử lý bằng bước hiệu
-chỉnh thủ công đã có (mục 9c) — 2 cơ chế bổ trợ nhau, không thay thế.
+### Luồng thao tác đúng (xác nhận trực tiếp từ người dùng)
+
+Đầu vào: dữ liệu như `Tính tồn 2.xlsx` (PA, cơ chế waterfall) và
+`Cân bằng chất.xlsx` (`CLB` — chất lượng bán thực đo) đã bàn ở mục 8+9.
+Đầu ra vẫn là 4 thứ như cũ — **Tồn, HHKK, HHB, `DCCL`** — nhưng quy
+trình tạo ra HHB sẽ khác:
+
+1. **Tồn — tự động**, phân bổ xuống PA/lô theo waterfall (PA gần
+   nhất). **Không đổi** so với thiết kế đã xác nhận ở mục 8.
+2. **HHKK — tự động**, phân bổ xuống PA/lô theo waterfall (PA gần
+   nhất so với ngày kiểm kê). **Không đổi**.
+3. **HHB — giai đoạn 1: gợi ý + chỉnh tay, ở mức CÁM THÀNH PHẨM**
+   (chưa xuống tới PA):
+   - Giá trị gợi ý ban đầu = **chính con số HHB đã nhập ở kiểm kê**
+     (`KetQuaKiemKe`/sheet `LK`, theo trạm + cám thành phẩm + tháng)
+     — xác nhận trực tiếp từ người dùng: *"tôi đã chia thành từng cám
+     ở sheet LK có lượng hhb"* — tức kiểm kê đã nhập đúng ở granularity
+     cám thành phẩm rồi, **không cần thuật toán tách/chia gì thêm** ở
+     bước gợi ý này.
+   - Người dùng **chỉnh tay trực tiếp** con số HHB này (theo cám thành
+     phẩm) — có thể khác số kiểm kê gốc — cho tới khi thấy hợp lý so
+     với `CLB` (theo kinh nghiệm, không phải hệ thống tự giải).
+   - Bấm xác nhận để **CHỐT** lượng HHB cuối cùng theo cám thành phẩm.
+4. **HHB — giai đoạn 2: nút "Phân bổ"** (cascade lượng đã chốt xuống
+   từng cám thành phần/PA):
+   - Đầu vào: lượng HHB đã chốt (giai đoạn 1, theo cám thành phẩm) +
+     **sức chứa còn lại của từng PA** — đã biết sẵn từ bước 1-2 (Tồn/
+     HHKK đã trừ) — xác nhận trực tiếp từ người dùng: *"bước trước sẽ
+     cho biết lượng của từng phương án là bao nhiêu để phân bổ"*.
+   - Thuật toán: phân bổ theo **tỷ lệ sức chứa còn lại** của từng PA —
+     PA nào còn nhiều "chỗ trống" (chưa bị Tồn/HHKK ăn hết) gánh HHB
+     nhiều hơn theo đúng tỷ lệ. Áp dụng đúng quy tắc làm tròn đã có
+     (rank theo delta, bù 0,01 — mục 8) để tổng làm tròn khớp đúng HHB
+     đã chốt.
+5. **`DCCL` — tính bình thường**: bình quân gia quyền từ Tồn/HHKK/HHB
+   đã có đầy đủ ở mức PA/lô (kết quả bước 1-4), đúng cách đã có ở
+   Module 8 — không cần thêm bước hiệu chỉnh nào khác sau đó (phần
+   "nắn theo chất lượng" đã làm xong ở bước 3).
 
 ### Vị trí trong kiến trúc
 
-Thay thế bước 3 ("HHB") của `phan_bo_waterfall()` (Module 6). Bước 1
-(Tồn → PA gần nhất) và bước 2 (HHKK → PA gần nhất theo ngày kiểm kê)
-**giữ nguyên** — 2 bước này đã khớp đúng `Tính tồn 2.xlsx` gốc, không
-đổi. Kết quả (đổi ở bước 3) tiếp tục chảy xuống dùng ở
-`tinh_luong_ban_theo_lo()` (Module 7, không cần sửa gì — vẫn đọc
-`PhanBoChiTiet.loai='hhb'` như cũ) và `can_bang_chat_theo_nhom_bm8()`
-(Module 8 — Qk bình quân sẽ sát `CLB.Qk` hơn ngay từ đầu).
+Thay bước 3 ("HHB") của `phan_bo_waterfall()` (Module 6) bằng 2 giai
+đoạn trên. Bước 1-2 (Tồn/HHKK) giữ nguyên. `tinh_luong_ban_theo_lo()`
+(Module 7) không cần sửa gì — vẫn đọc `PhanBoChiTiet.loai='hhb'` như
+cũ, chỉ giá trị bên trong đến từ luồng mới. `can_bang_chat_theo_nhom_bm8()`
+(Module 8) cũng không cần sửa — Qk bình quân sẽ tự sát `CLB.Qk` hơn vì
+đầu vào (HHB theo PA) đã được nắn từ trước, không cần thêm bước hiệu
+chỉnh riêng ở Module 8 nữa cho phần này (khác với bước hiệu chỉnh Ak/
+Vk/Sk trực tiếp ở mục 9c — 2 việc khác nhau, có thể vẫn cần cả hai nếu
+Ak/Vk/Sk còn lệch sau khi nắn Qk qua HHB).
 
-### Thuật toán (pseudocode, sẵn sàng chuyển thành code)
+### Việc cần làm khi code
 
-```
-Đầu vào: danh sách PA trong kỳ + sức_chứa_còn_lại[PA] (sau bước
-         Tồn/HHKK) + HHB_tổng (nhập tay, KetQuaKiemKe) + Qk_CLB
-         (mục tiêu, từ bảng CLB — Module 8)
-Đầu ra:  HHB[PA] cho từng PA
-
-Bước 0 — Chuẩn bị:
-  PAs = { PA có sức_chứa_còn_lại > 0 }
-  tong_suc_chua = sum(sức_chứa_còn_lại[PA] với PA in PAs)
-
-Bước 1 — Baseline (phân bổ theo tỷ lệ sức chứa còn lại — khách quan):
-  for PA in PAs:
-    HHB[PA] = HHB_tổng * sức_chứa_còn_lại[PA] / tong_suc_chua
-    L_B[PA] = sức_chứa_còn_lại[PA] - HHB[PA]
-
-Bước 2 — Tính Qk bình quân gia quyền tạm thời:
-  Qk_tinh = sum(L_B[PA] * Qk[PA]) / sum(L_B[PA])
-
-Bước 3 — Vòng lặp nắn theo Qk (tối đa 500 vòng, chống treo):
-  lap = 0
-  while |Qk_tinh - Qk_CLB| > 0.5 and lap < 500:
-    if Qk_tinh < Qk_CLB:
-      # cần TĂNG Qk bình quân phần bán → giữ PA Qk cao (bớt HHB ở đó),
-      # loại bớt PA Qk thấp (thêm HHB ở đó)
-      pa_nguon = argmax(Qk[PA]) trong số { PA : HHB[PA] > 0 }
-      pa_dich  = argmin(Qk[PA]) trong số { PA : L_B[PA] > 0 }
-    else:
-      pa_nguon = argmin(Qk[PA]) trong số { PA : HHB[PA] > 0 }
-      pa_dich  = argmax(Qk[PA]) trong số { PA : L_B[PA] > 0 }
-
-    if pa_nguon hoặc pa_dich không tồn tại:
-      DỪNG — ghi cảnh báo "hết dư địa, không đạt Qk mục tiêu"
-      break
-
-    buoc = min(1% * HHB_tổng, HHB[pa_nguon], L_B[pa_dich])
-    HHB[pa_nguon] -= buoc;  L_B[pa_nguon] += buoc
-    HHB[pa_dich]  += buoc;  L_B[pa_dich]  -= buoc
-    tính lại Qk_tinh
-    lap += 1
-
-  Nếu lap == 500 mà chưa hội tụ: DỪNG — ghi cảnh báo tương tự.
-
-Bước 4 — Làm tròn: áp dụng ĐÚNG quy tắc rank-theo-delta đã có (mục 8)
-  để tổng HHB làm tròn khớp HHB_tổng.
-```
-
-### Giá trị mặc định đã chọn (đề xuất — chỉnh lại khi review code thật)
-
-| Tham số | Giá trị | Lý do |
-|---|---|---|
-| Sai số dừng vòng lặp | 0,5 (nửa đơn vị Qk) | Qk làm tròn về số nguyên (đã xác nhận mục 6/9c) — dưới 0,5 sẽ tự làm tròn đúng mục tiêu |
-| Bước dịch chuyển mỗi vòng | 1% của `HHB_tổng` | Hội tụ đủ nhanh, không nhảy quá xa qua mục tiêu — cần tinh chỉnh khi test số thật |
-| Giới hạn vòng lặp | 500 | Chống treo nếu dữ liệu bất thường, dừng có cảnh báo thay vì lỗi |
-| PA có sức chứa còn lại = 0 | Loại khỏi toàn bộ thuật toán | Không có gì để dịch chuyển |
-
-### Yêu cầu minh bạch/audit
-
-Vì đây là bước "nắn" chủ động (khác các bước phân bổ khách quan
-khác), kết quả cần lưu thêm: **số vòng lặp đã chạy**, **có hội tụ hay
-dừng vì hết dư địa/chạm giới hạn**, và **Qk_tính trước/sau khi nắn** —
-để kế toán biết rõ đã có can thiệp và can thiệp tới mức nào, không
-làm ngầm. Đề xuất thêm các trường này vào `PhanBoSnapshot` (bảng đã
-có ở Module 6) thay vì bảng mới.
-
-### Còn cần làm trước khi coi là xong
-
-- Code thuật toán trên thay thế bước HHB của `phan_bo_waterfall()`.
-- Test bằng dữ liệu tự tạo trước (giống các module khác khi mới code).
-- **Kiểm chứng bằng dữ liệu thật sau đó** — thuật toán này KHÔNG có
-  trong Excel gốc nên không có "đáp án đúng" để đối chiếu trực tiếp
-  như các bước Tồn/HHKK; chỉ có thể kiểm chứng gián tiếp bằng cách so
-  `Qk` bình quân ra có sát `CLB.Qk` thật hơn cách cũ hay không.
+1. **Frontend `phan-bo.html`**: thêm 1 màn hình/bảng mới ở mức **cám
+   thành phẩm** cho HHB — hiển thị giá trị gợi ý (từ kiểm kê), ô cho
+   người dùng sửa tay, nút "Chốt". Tách biệt với bảng kết quả theo
+   PA/lô (hiển thị SAU khi bấm "Phân bổ").
+2. **Backend**: cần 2 trường lưu riêng cho HHB ở mức cám thành phẩm —
+   `hhb_kiem_ke` (số gốc từ kiểm kê, giữ nguyên làm audit trail) và
+   `hhb_da_chot` (số sau khi người dùng chỉnh tay + xác nhận, dùng để
+   phân bổ xuống PA) — để biết rõ có chỉnh hay không và chỉnh bao
+   nhiêu.
+3. **Nút "Phân bổ"**: chỉ chạy được sau khi `hhb_da_chot` đã có giá
+   trị (không cho phân bổ khi đang ở trạng thái nháp/chưa xác nhận) —
+   thuật toán tỷ lệ theo sức chứa còn lại + làm tròn rank-delta như
+   mục 4 ở trên.
+4. Test bằng dữ liệu tự tạo trước, sau đó **kiểm chứng gián tiếp bằng
+   dữ liệu thật** (so `Qk` bình quân ra có sát `CLB.Qk` hơn cách cũ
+   không) — thiết kế này không có trong Excel gốc nên không có "đáp
+   án đúng" để đối chiếu trực tiếp như Tồn/HHKK.

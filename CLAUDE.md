@@ -100,15 +100,22 @@ buộc áp dụng tiếp** cho các module sau):
      lớn nhất". Đã xác nhận ở mức nguyên tắc, chi tiết cài đặt (tie-
      break, áp dụng cho cả 3 loại Tồn/HHKK/HHB hay riêng từng loại) để
      dành khi code Module 6.
-   - **Thiết kế mới (2026-07-10) — phân bổ HHB có nắn theo Qk**: thay
-     bước phân bổ HHB cũ ("dồn vào PA gần nhất còn dư chỗ") bằng thuật
-     toán chủ động nắn theo `Qk_CLB` (chất lượng bán thực đo) — người
-     dùng xác nhận chủ ý muốn vậy, dù biết đây là đánh đổi (HHB từ số
-     liệu khách quan thành biến điều chỉnh theo mục tiêu chất lượng).
-     Thiết kế đầy đủ (pseudocode, giá trị mặc định, yêu cầu audit) đã
-     viết ở `md/01-...md` mục 11 — **sẵn sàng code**, chưa có trong
-     Excel gốc nên chưa thể đối chiếu trực tiếp, cần kiểm chứng gián
-     tiếp bằng số thật sau khi code xong.
+   - **Thiết kế mới (2026-07-10) — phân bổ HHB qua 2 giai đoạn**: thay
+     bước phân bổ HHB cũ ("dồn vào PA gần nhất còn dư chỗ") bằng luồng
+     **thủ công ở mức cám thành phẩm rồi cascade tự động xuống PA**:
+     (1) hệ thống gợi ý HHB = số đã nhập kiểm kê (theo cám thành phẩm,
+     không cần tách gì thêm), (2) người dùng **chỉnh tay** con số này
+     cho khớp chất lượng bán mong muốn (ít nhất là `Qk`) rồi bấm chốt,
+     (3) nút "Phân bổ" cascade lượng đã chốt xuống từng PA theo tỷ lệ
+     **sức chứa còn lại** (đã biết từ bước Tồn/HHKK). **Đã thử 1
+     phương án tự động hoá hoàn toàn (thuật toán vòng lặp dịch chuyển
+     HHB giữa PA để tự nắn Qk) nhưng đã RÚT LẠI** sau khi làm rõ luồng
+     thao tác thật — người dùng muốn bước nắn chất lượng là thao tác
+     tay (cùng bản chất với bước hiệu chỉnh B8 đã biết ở mục 9c, chỉ
+     khác là nắn lượng HHB thay vì nắn trực tiếp số liệu chất lượng).
+     Thiết kế đầy đủ đã viết ở `md/01-...md` mục 11 — **sẵn sàng code**,
+     chưa có trong Excel gốc nên chưa thể đối chiếu trực tiếp, cần kiểm
+     chứng gián tiếp bằng số thật sau khi code xong.
 3. **Import phải idempotent + có `--dry-run`.** Chạy lại 1 file Excel
    đã import trước đó không được tạo trùng dữ liệu.
 4. **Dữ liệu kế toán không xoá cứng.** Soft delete (`deleted_at`) +

@@ -600,23 +600,30 @@ Thuật toán waterfall đã xác nhận — xem `CLAUDE.md` nguyên tắc #2 +
 - [ ] Frontend `phan-bo.html` mới smoke-test qua `curl`/API, CHƯA tự
       thao tác qua trình duyệt thật (chọn dropdown, bấm nút, xem bảng
       kết quả) — nên làm trước khi giao người dùng thật sử dụng.
-- [ ] **VIỆC MỚI, ƯU TIÊN CAO (2026-07-10) — thiết kế đầy đủ, sẵn sàng
-      code**: thay bước phân bổ HHB hiện tại (dồn vào PA gần nhất còn
-      dư chỗ) bằng thuật toán **nắn theo `Qk_CLB`** (chất lượng bán
-      thực đo) — người dùng chủ động yêu cầu, xác nhận muốn code module
-      này TRƯỚC để áp dụng sớm. Toàn bộ pseudocode + giá trị mặc định
-      (sai số dừng 0,5; bước dịch chuyển 1% HHB_tổng; giới hạn 500
-      vòng lặp) + yêu cầu ghi audit đã viết đầy đủ ở `md/01-...md` mục
-      11. Việc cần làm:
-      1. Sửa `phan_bo_waterfall()` — thay bước 3 (HHB) theo thuật toán
-         mới, giữ nguyên bước 1-2 (Tồn/HHKK).
-      2. Thêm trường lưu audit (số vòng lặp, hội tụ hay dừng vì hết dư
-         địa, Qk trước/sau nắn) vào `PhanBoSnapshot`.
-      3. Test bằng dữ liệu tự tạo trước — sau đó **kiểm chứng gián
+- [ ] **VIỆC MỚI, ƯU TIÊN CAO (2026-07-10, đã sửa lại thiết kế cùng
+      ngày) — thiết kế đầy đủ, sẵn sàng code**: thay bước phân bổ HHB
+      hiện tại (dồn vào PA gần nhất còn dư chỗ) bằng luồng **2 giai
+      đoạn**: (1) gợi ý HHB theo cám thành phẩm = số đã nhập kiểm kê,
+      (2) người dùng **chỉnh tay** cho khớp chất lượng bán rồi bấm
+      chốt, (3) nút "Phân bổ" cascade tự động xuống PA theo tỷ lệ sức
+      chứa còn lại. **Bản đầu (thuật toán vòng lặp tự động nắn Qk) đã
+      bị rút lại** — xem `md/01-...md` mục 11 để biết đầy đủ luồng
+      đúng + lý do đổi. Người dùng chủ động yêu cầu, muốn code module
+      này TRƯỚC để áp dụng sớm. Việc cần làm:
+      1. Frontend `phan-bo.html`: thêm màn hình HHB ở mức cám thành
+         phẩm (gợi ý + ô sửa tay + nút "Chốt"), tách biệt bảng kết quả
+         theo PA/lô (hiện sau khi bấm "Phân bổ").
+      2. Backend: thêm 2 trường `hhb_kiem_ke` (gốc, audit) và
+         `hhb_da_chot` (sau khi người dùng chỉnh + xác nhận) ở mức cám
+         thành phẩm.
+      3. Nút "Phân bổ": chỉ chạy khi `hhb_da_chot` đã có giá trị —
+         thuật toán tỷ lệ theo sức chứa còn lại + làm tròn rank-delta
+         (đã có, mục 8).
+      4. Test bằng dữ liệu tự tạo trước — sau đó **kiểm chứng gián
          tiếp bằng dữ liệu thật** (so Qk bình quân ra có sát `CLB.Qk`
-         hơn cách cũ không), vì thuật toán này KHÔNG có trong Excel
-         gốc để đối chiếu trực tiếp (khác Tồn/HHKK).
-      4. Không cần sửa `tinh_luong_ban_theo_lo()` (Module 7) hay
+         hơn cách cũ không), vì luồng này KHÔNG có trong Excel gốc để
+         đối chiếu trực tiếp (khác Tồn/HHKK).
+      5. Không cần sửa `tinh_luong_ban_theo_lo()` (Module 7) hay
          `can_bang_chat_theo_nhom_bm8()` (Module 8) — cả 2 vẫn đọc
          đúng cấu trúc `PhanBoChiTiet` cũ, chỉ giá trị bên trong đổi.
 
