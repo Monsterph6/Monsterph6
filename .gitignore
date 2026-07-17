@@ -1,0 +1,6 @@
+config.json
+.installed
+__pycache__/
+*.pyc
+.venv/
+venv/

@@ -1,0 +1,48 @@
+{
+  "window_title": "MU",
+  "hotkeys": {
+    "toggle": "f8",
+    "panic": "f9"
+  },
+  "spot": {
+    "name": "Bai Land1",
+    "target_x": 130,
+    "target_y": 130,
+    "radius": 8,
+    "walk_step_px": 90,
+    "walk_click_delay": 0.35,
+    "recenter_every": 6.0
+  },
+  "coord_ocr": {
+    "enabled": true,
+    "region": [10, 40, 150, 22],
+    "tesseract_cmd": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
+    "read_interval": 1.0
+  },
+  "hunt": {
+    "attack_keys": ["e"],
+    "attack_hold": false,
+    "attack_interval": 0.25,
+    "pickup_key": "z",
+    "pickup_interval": 2.5,
+    "buff_keys": ["c", "v"],
+    "buff_interval": 60.0,
+    "move_cmd_key": null
+  },
+  "potions": {
+    "enabled": true,
+    "hp_key": "q",
+    "mp_key": "w",
+    "hp_bar": {"x": 40, "y": 700, "threshold": 0.55},
+    "mp_bar": {"x": 40, "y": 720, "threshold": 0.30},
+    "full_color": [180, 40, 40],
+    "empty_color": [60, 20, 20],
+    "check_interval": 0.4,
+    "pot_cooldown": 0.6
+  },
+  "safety": {
+    "max_runtime_min": 0,
+    "human_jitter": true,
+    "start_delay_sec": 3
+  }
+}

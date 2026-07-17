@@ -1,0 +1,8 @@
+# MU Auto Bãi - dependencies (Windows)
+pydirectinput==1.0.4      # gửi phím/chuột vào game DirectX (quan trọng)
+pyautogui==0.9.54         # chụp màn hình, định vị
+Pillow==10.4.0            # xử lý ảnh
+mss==9.0.1                # chụp màn hình nhanh (grab HP/MP bar)
+keyboard==0.13.5          # hotkey toàn cục (F8 start/stop...)
+numpy==1.26.4             # xử lý pixel nhanh
+pytesseract==0.3.13       # OCR đọc tọa độ (cần cài Tesseract-OCR riêng)
