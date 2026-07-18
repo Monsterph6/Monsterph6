@@ -14,7 +14,26 @@ Dữ liệu gốc được trích từ file Excel *"Phả đồ chi họ Phạm 
 - **In** phả đồ.
 - Lần chạy đầu app **tự tạo Google Sheet** và đổ sẵn toàn bộ dữ liệu từ phả đồ gốc.
 
-## Cài đặt (khoảng 5 phút)
+## Cấu hình sẵn trong repo
+
+- **Script ID (GAS)**: `15XwGNzoptOO8D6VcH4G1hFV0fWkdWfdz8aF6T0YqDlVYdC-VLlDWAVbd` — đã khai báo trong `.clasp.json`.
+- **Database (Google Sheet ID)**: `12E1CJQdwsYrTvlXrBYprtBQqZNjDGVpcRXjbFxc2GlQ` — đã khai báo trong hằng `SPREADSHEET_ID` ở đầu `Code.gs`. Nếu sheet `GiaPha` trong file này còn trống, app sẽ tự đổ dữ liệu gốc từ phả đồ vào lần chạy đầu tiên.
+
+## Cách 1 — Đẩy code lên GAS bằng clasp (khuyên dùng)
+
+Yêu cầu: đã cài [Node.js](https://nodejs.org). Chạy trong thư mục repo này:
+
+```bash
+npm install -g @google/clasp
+clasp login          # đăng nhập tài khoản Google sở hữu script
+clasp push -f        # đẩy Code.gs, SeedData.gs, Index.html, appsscript.json lên GAS
+```
+
+> Nếu `clasp push` báo lỗi *"User has not enabled the Apps Script API"*: mở <https://script.google.com/home/usersettings>, bật **Google Apps Script API**, chờ ~1 phút rồi chạy lại.
+
+Sau khi push xong, mở <https://script.google.com> → dự án của bạn → **Triển khai** → **Tùy chọn triển khai mới** → **Ứng dụng web** (xem bước 3–4 bên dưới).
+
+## Cách 2 — Dán tay (khoảng 5 phút)
 
 1. Mở <https://script.google.com> → **Dự án mới** (New project). Đặt tên, ví dụ *Gia phả họ Phạm Hiếu*.
 2. Tạo đủ 4 tệp và dán nội dung tương ứng từ repo này:
@@ -29,7 +48,7 @@ Dữ liệu gốc được trích từ file Excel *"Phả đồ chi họ Phạm 
    - *Ai có quyền truy cập*: **Bất kỳ ai** (Anyone) — để cả họ xem không cần đăng nhập; hoặc chọn hẹp hơn tùy ý.
 4. Bấm **Triển khai**, cấp quyền khi được hỏi (app cần quyền tạo/đọc Google Sheet), rồi mở **URL ứng dụng web** — xong! Gửi link này cho mọi người trong họ.
 
-> Lần đầu mở app, một Spreadsheet tên **"Dữ liệu Gia phả — Chi họ Phạm Hiếu"** sẽ xuất hiện trong Google Drive của bạn. Đó là "cơ sở dữ liệu" của app — nút **📄 Mở Google Sheet** trong app dẫn thẳng tới đây.
+> App dùng Google Sheet có ID khai báo ở hằng `SPREADSHEET_ID` (đầu tệp `Code.gs`) làm cơ sở dữ liệu; tài khoản triển khai cần có quyền chỉnh sửa file Sheet đó. Nếu để `SPREADSHEET_ID = ''`, app sẽ tự tạo một Spreadsheet mới trong Drive ở lần chạy đầu. Nút **📄 Mở Google Sheet** trong app dẫn thẳng tới Sheet đang dùng.
 
 ## Cấu trúc dữ liệu (sheet `GiaPha`)
 

@@ -11,6 +11,12 @@
 var SHEET_NAME = 'GiaPha';
 var PROP_SS_ID = 'GIAPHA_SPREADSHEET_ID';
 
+/**
+ * ID của Google Sheet dùng làm cơ sở dữ liệu.
+ * Nếu để trống (''), app sẽ tự tạo một Spreadsheet mới trong Drive khi chạy lần đầu.
+ */
+var SPREADSHEET_ID = '12E1CJQdwsYrTvlXrBYprtBQqZNjDGVpcRXjbFxc2GlQ';
+
 /** Điểm vào của web app. */
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
@@ -22,6 +28,9 @@ function doGet() {
 
 /** Lấy (hoặc tạo lần đầu) spreadsheet chứa dữ liệu. */
 function getSpreadsheet_() {
+  if (SPREADSHEET_ID) {
+    return SpreadsheetApp.openById(SPREADSHEET_ID);
+  }
   var props = PropertiesService.getScriptProperties();
   var id = props.getProperty(PROP_SS_ID);
   if (id) {
@@ -53,6 +62,9 @@ function getSheet_() {
   var sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
+  }
+  // Sheet mới hoặc còn trống -> đổ dữ liệu gốc từ phả đồ vào.
+  if (sheet.getLastRow() === 0) {
     seedSheet_(sheet);
   }
   return sheet;

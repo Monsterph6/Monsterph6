@@ -1,0 +1,6 @@
+# Chỉ đẩy các tệp Apps Script lên GAS
+**/**
+!Code.gs
+!SeedData.gs
+!Index.html
+!appsscript.json
