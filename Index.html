@@ -1,0 +1,591 @@
+<style>
+  :root {
+    --do: #7b1e1e;
+    --do-dam: #5c1414;
+    --vang: #c9a227;
+    --nen: #f7f1e3;
+    --giay: #fffdf5;
+    --muc: #2f2a24;
+    --nam: #dbe9f6;
+    --nam-vien: #6b93b8;
+    --nu: #fbe4e8;
+    --nu-vien: #c98a9a;
+    --khac: #eeeeee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--nen);
+    color: var(--muc);
+    min-height: 100vh;
+  }
+
+  /* ===== Header ===== */
+  header {
+    background: linear-gradient(135deg, var(--do-dam), var(--do));
+    color: #fff;
+    padding: 14px 18px 10px;
+    border-bottom: 4px solid var(--vang);
+  }
+  header h1 {
+    font-size: 19px;
+    letter-spacing: .5px;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffe9a8;
+    text-shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    justify-content: center; margin-top: 10px;
+  }
+  .toolbar input[type=search] {
+    padding: 7px 12px; border: none; border-radius: 18px;
+    min-width: 230px; font-size: 14px; outline: none;
+  }
+  .btn {
+    background: var(--vang); color: #3c2b00; border: none;
+    padding: 7px 14px; border-radius: 18px; font-size: 13px;
+    font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: rgba(255,255,255,.15); color: #fff; }
+  .tabs { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
+  .tab {
+    background: rgba(255,255,255,.12); color: #fff; border: none;
+    padding: 7px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px;
+  }
+  .tab.active { background: var(--nen); color: var(--do); font-weight: 700; }
+
+  /* ===== Vùng nội dung ===== */
+  .view { display: none; }
+  .view.active { display: block; }
+  #loading { text-align: center; padding: 60px 20px; font-size: 16px; color: var(--do); }
+
+  /* ===== Phả đồ (cây) ===== */
+  #treeWrap {
+    overflow: hidden; cursor: grab; height: calc(100vh - 132px);
+    position: relative; user-select: none;
+  }
+  #treeWrap.dragging { cursor: grabbing; }
+  #treeCanvas { transform-origin: 0 0; position: absolute; padding: 30px; }
+  .tree ul { display: flex; padding-top: 26px; position: relative; justify-content: center; }
+  .tree li {
+    list-style: none; text-align: center; position: relative;
+    padding: 26px 8px 0;
+  }
+  /* đường nối */
+  .tree li::before, .tree li::after {
+    content: ''; position: absolute; top: 0; right: 50%;
+    border-top: 2px solid var(--do); width: 50%; height: 26px;
+  }
+  .tree li::after { right: auto; left: 50%; border-left: 2px solid var(--do); }
+  .tree li:only-child::after, .tree li:only-child::before { display: none; }
+  .tree li:only-child { padding-top: 0; }
+  .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+  .tree li:last-child::before { border-right: 2px solid var(--do); border-radius: 0 6px 0 0; }
+  .tree li:first-child::after { border-radius: 6px 0 0 0; }
+  .tree ul ul::before {
+    content: ''; position: absolute; top: 0; left: 50%;
+    border-left: 2px solid var(--do); width: 0; height: 26px;
+  }
+  .tree > ul > li { padding-top: 0; }
+  .tree > ul > li::before, .tree > ul > li::after { display: none; }
+
+  .card {
+    display: inline-block; background: var(--giay);
+    border: 2px solid var(--nam-vien); border-radius: 10px;
+    padding: 8px 10px; min-width: 150px; max-width: 220px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.15); cursor: pointer;
+    transition: transform .12s, box-shadow .12s; text-align: center;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,.25); }
+  .card.nu { border-color: var(--nu-vien); }
+  .card.hl { outline: 3px solid var(--vang); outline-offset: 2px; }
+  .card .doi-tag {
+    font-size: 10px; color: #fff; background: var(--do);
+    border-radius: 8px; padding: 1px 8px; display: inline-block; margin-bottom: 4px;
+  }
+  .card .ten { font-weight: 700; font-size: 14px; color: var(--do-dam); }
+  .card.nu .ten { color: #8a3a4d; }
+  .card .chucdanh { font-size: 11px; color: #6d5a2e; font-style: italic; margin-top: 2px; }
+  .card .gio { font-size: 11px; color: #444; margin-top: 2px; }
+  .card .spouse {
+    border-top: 1px dashed #bba; margin-top: 6px; padding-top: 4px;
+    font-size: 12px; color: #555;
+  }
+  .card .spouse b { color: #7d4a58; font-weight: 600; }
+  .zoombar {
+    position: absolute; right: 14px; bottom: 14px; z-index: 5;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .zoombar button {
+    width: 38px; height: 38px; border-radius: 50%; border: none;
+    background: var(--do); color: #fff; font-size: 17px; cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,.3);
+  }
+
+  /* ===== Danh sách theo đời ===== */
+  #listView, #gioView { padding: 18px; max-width: 1000px; margin: 0 auto; }
+  .doi-block { margin-bottom: 22px; }
+  .doi-block h2 {
+    color: var(--do); font-size: 16px; border-bottom: 2px solid var(--vang);
+    padding-bottom: 4px; margin-bottom: 10px;
+  }
+  table { width: 100%; border-collapse: collapse; background: var(--giay); font-size: 14px; }
+  th, td { border: 1px solid #dcd2b8; padding: 7px 10px; text-align: left; }
+  th { background: #efe6cd; color: var(--do-dam); }
+  tr:hover td { background: #faf4e0; }
+  .link { color: var(--do); cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+  /* ===== Modal ===== */
+  #overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 20;
+    align-items: center; justify-content: center; padding: 16px;
+  }
+  #overlay.open { display: flex; }
+  .modal {
+    background: var(--giay); border-radius: 12px; max-width: 520px; width: 100%;
+    max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  .modal-head {
+    background: var(--do); color: #fff; padding: 12px 16px;
+    border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-head h3 { font-size: 16px; }
+  .modal-head .close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+  .modal-body { padding: 16px; }
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: #6d5a2e; margin-bottom: 3px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 7px 9px; border: 1px solid #cbbf9e; border-radius: 6px;
+    font-size: 14px; background: #fff;
+  }
+  .field textarea { resize: vertical; min-height: 54px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .btn.solid { background: var(--do); color: #fff; }
+  .btn.danger { background: #fff; color: #b02a2a; border: 1px solid #b02a2a; }
+  .info-line { margin-bottom: 6px; font-size: 14px; }
+  .info-line b { color: var(--do-dam); }
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: 14px; display: none; z-index: 50;
+  }
+  @media print {
+    header .toolbar, header .tabs, .zoombar { display: none; }
+    #treeWrap { overflow: visible; height: auto; }
+  }
+</style>
+
+<header>
+  <h1 id="appTitle">Gia phả — Chi họ Phạm Hiếu</h1>
+  <div class="toolbar">
+    <input type="search" id="searchBox" placeholder="🔍 Tìm tên (vd: Hiếu Điều)..." />
+    <button class="btn" id="btnAddRoot">+ Thêm thành viên</button>
+    <button class="btn ghost" id="btnSheet">📄 Mở Google Sheet</button>
+    <button class="btn ghost" onclick="window.print()">🖨 In</button>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-view="treeView">Phả đồ</button>
+    <button class="tab" data-view="listView">Danh sách theo đời</button>
+    <button class="tab" data-view="gioView">Ngày giỗ</button>
+  </div>
+</header>
+
+<div id="loading">⏳ Đang tải dữ liệu gia phả...</div>
+
+<div id="treeView" class="view">
+  <div id="treeWrap">
+    <div id="treeCanvas"><div class="tree" id="treeRoot"></div></div>
+    <div class="zoombar">
+      <button id="zin" title="Phóng to">+</button>
+      <button id="zout" title="Thu nhỏ">−</button>
+      <button id="zfit" title="Vừa màn hình">⤢</button>
+    </div>
+  </div>
+</div>
+
+<div id="listView" class="view"></div>
+<div id="gioView" class="view"></div>
+
+<div id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Chi tiết</h3>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+  var DATA = { title: '', sheetUrl: '', persons: [] };
+  var byId = {};          // ID -> person
+  var childrenOf = {};    // ID cha -> [con]
+  var spousesOf = {};     // ID -> [vợ/chồng]
+  var scale = 1, panX = 0, panY = 0;
+
+  var DOI_LABEL = {
+    1: 'Đời 1 — Tiên tổ', 2: 'Đời 2 — Cao tổ', 3: 'Đời 3 — Tằng tổ',
+    4: 'Đời 4 — Hiền tổ'
+  };
+  function doiLabel(d) { return DOI_LABEL[d] || ('Đời ' + d + ' — Thế hệ thứ ' + d); }
+
+  // ============ Tải dữ liệu ============
+  function loadData() {
+    document.getElementById('loading').style.display = 'block';
+    google.script.run
+      .withSuccessHandler(onData)
+      .withFailureHandler(showError)
+      .getFamilyData();
+  }
+  function onData(res) {
+    DATA = res;
+    document.getElementById('appTitle').textContent = res.title || 'Gia phả';
+    index_();
+    renderAll();
+    document.getElementById('loading').style.display = 'none';
+    document.querySelector('.view.active') || switchView('treeView');
+  }
+  function index_() {
+    byId = {}; childrenOf = {}; spousesOf = {};
+    DATA.persons.forEach(function (p) {
+      p.ID = Number(p.ID);
+      byId[p.ID] = p;
+    });
+    DATA.persons.forEach(function (p) {
+      var cha = Number(p.ChaID) || 0;
+      var vc = Number(p.VoChongCuaID) || 0;
+      if (vc && byId[vc]) {
+        (spousesOf[vc] = spousesOf[vc] || []).push(p);
+      } else if (cha && byId[cha]) {
+        (childrenOf[cha] = childrenOf[cha] || []).push(p);
+      }
+    });
+    var sortFn = function (a, b) {
+      return (Number(a.ThuTu) || 99) - (Number(b.ThuTu) || 99) || a.ID - b.ID;
+    };
+    Object.keys(childrenOf).forEach(function (k) { childrenOf[k].sort(sortFn); });
+    Object.keys(spousesOf).forEach(function (k) { spousesOf[k].sort(sortFn); });
+  }
+  function roots_() {
+    return DATA.persons.filter(function (p) {
+      return !(Number(p.ChaID) && byId[Number(p.ChaID)]) &&
+             !(Number(p.VoChongCuaID) && byId[Number(p.VoChongCuaID)]);
+    }).sort(function (a, b) { return (a.Doi - b.Doi) || (a.ID - b.ID); });
+  }
+
+  function renderAll() {
+    renderTree();
+    renderList();
+    renderGio();
+  }
+
+  // ============ Phả đồ ============
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function cardHtml(p) {
+    var spouses = spousesOf[p.ID] || [];
+    var h = '<div class="card ' + (p.GioiTinh === 'Nữ' ? 'nu' : '') + '" data-id="' + p.ID + '" onclick="openDetail(' + p.ID + ');event.stopPropagation()">';
+    h += '<span class="doi-tag">Đời ' + esc(p.Doi) + '</span>';
+    h += '<div class="ten">' + esc(p.HoTen) + '</div>';
+    if (p.ChucDanh) h += '<div class="chucdanh">' + esc(p.ChucDanh) + '</div>';
+    if (p.NgayGio) h += '<div class="gio">🕯 Giỗ: ' + esc(p.NgayGio) + ' (ÂL)</div>';
+    spouses.forEach(function (s) {
+      h += '<div class="spouse" onclick="openDetail(' + s.ID + ');event.stopPropagation()">' +
+           (s.GioiTinh === 'Nam' ? '🤵 ' : '👰 ') + '<b>' + esc(s.HoTen) + '</b>' +
+           (s.NgayGio ? ' · giỗ ' + esc(s.NgayGio) : '') + '</div>';
+    });
+    h += '</div>';
+    return h;
+  }
+  function nodeHtml(p) {
+    var kids = childrenOf[p.ID] || [];
+    var h = '<li>' + cardHtml(p);
+    if (kids.length) {
+      h += '<ul>' + kids.map(nodeHtml).join('') + '</ul>';
+    }
+    h += '</li>';
+    return h;
+  }
+  function renderTree() {
+    var roots = roots_();
+    document.getElementById('treeRoot').innerHTML =
+      '<ul>' + roots.map(nodeHtml).join('') + '</ul>';
+    requestAnimationFrame(fitTree);
+  }
+  function applyTransform() {
+    document.getElementById('treeCanvas').style.transform =
+      'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
+  }
+  function fitTree() {
+    var wrap = document.getElementById('treeWrap');
+    var canvas = document.getElementById('treeCanvas');
+    var w = canvas.scrollWidth, hgt = canvas.scrollHeight;
+    if (!w || !hgt) return;
+    scale = Math.min(wrap.clientWidth / w, wrap.clientHeight / hgt, 1);
+    if (scale < 0.15) scale = 0.15;
+    panX = (wrap.clientWidth - w * scale) / 2;
+    panY = 10;
+    applyTransform();
+  }
+
+  // Kéo & phóng
+  (function () {
+    var wrap = document.getElementById('treeWrap');
+    var dragging = false, sx = 0, sy = 0;
+    wrap.addEventListener('mousedown', function (e) {
+      dragging = true; sx = e.clientX - panX; sy = e.clientY - panY;
+      wrap.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      panX = e.clientX - sx; panY = e.clientY - sy; applyTransform();
+    });
+    window.addEventListener('mouseup', function () {
+      dragging = false; wrap.classList.remove('dragging');
+    });
+    wrap.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var f = e.deltaY < 0 ? 1.12 : 0.89;
+      var rect = wrap.getBoundingClientRect();
+      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      panX = mx - (mx - panX) * f;
+      panY = my - (my - panY) * f;
+      scale *= f; applyTransform();
+    }, { passive: false });
+    // cảm ứng
+    var lastTouch = null, lastDist = 0;
+    wrap.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1) lastTouch = { x: e.touches[0].clientX - panX, y: e.touches[0].clientY - panY };
+      if (e.touches.length === 2) lastDist = dist_(e.touches);
+    }, { passive: true });
+    wrap.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 1 && lastTouch) {
+        panX = e.touches[0].clientX - lastTouch.x;
+        panY = e.touches[0].clientY - lastTouch.y;
+        applyTransform();
+      } else if (e.touches.length === 2) {
+        var d = dist_(e.touches);
+        if (lastDist) { scale *= d / lastDist; applyTransform(); }
+        lastDist = d;
+      }
+    }, { passive: true });
+    function dist_(t) {
+      var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    document.getElementById('zin').onclick = function () { scale *= 1.2; applyTransform(); };
+    document.getElementById('zout').onclick = function () { scale /= 1.2; applyTransform(); };
+    document.getElementById('zfit').onclick = fitTree;
+  })();
+
+  // ============ Danh sách theo đời ============
+  function renderList() {
+    var byDoi = {};
+    DATA.persons.forEach(function (p) {
+      var d = Number(p.Doi) || 0;
+      (byDoi[d] = byDoi[d] || []).push(p);
+    });
+    var h = '';
+    Object.keys(byDoi).map(Number).sort(function (a, b) { return a - b; }).forEach(function (d) {
+      h += '<div class="doi-block"><h2>' + esc(doiLabel(d)) + ' (' + byDoi[d].length + ' người)</h2>';
+      h += '<table><tr><th>Họ tên</th><th>Giới tính</th><th>Quan hệ</th><th>Ngày giỗ (ÂL)</th><th>Chức danh / Ghi chú</th></tr>';
+      byDoi[d].sort(function (a, b) { return a.ID - b.ID; }).forEach(function (p) {
+        var qh = '';
+        var cha = byId[Number(p.ChaID)];
+        var vc = byId[Number(p.VoChongCuaID)];
+        if (cha) qh = 'Con cụ ' + cha.HoTen;
+        else if (vc) qh = (p.GioiTinh === 'Nam' ? 'Chồng cụ ' : 'Vợ cụ ') + vc.HoTen;
+        h += '<tr><td><span class="link" onclick="openDetail(' + p.ID + ')">' + esc(p.HoTen) + '</span></td>' +
+          '<td>' + esc(p.GioiTinh) + '</td><td>' + esc(qh) + '</td>' +
+          '<td>' + esc(p.NgayGio) + '</td>' +
+          '<td>' + esc([p.ChucDanh, p.GhiChu].filter(Boolean).join(' — ')) + '</td></tr>';
+      });
+      h += '</table></div>';
+    });
+    document.getElementById('listView').innerHTML = h;
+  }
+
+  // ============ Ngày giỗ ============
+  function parseGio(s) {
+    var m = String(s || '').match(/(\d{1,2})\s*[\/-]\s*(\d{1,2})/);
+    return m ? { d: +m[1], m: +m[2] } : null;
+  }
+  function renderGio() {
+    var rows = DATA.persons
+      .map(function (p) { return { p: p, g: parseGio(p.NgayGio) }; })
+      .filter(function (x) { return x.g; })
+      .sort(function (a, b) { return (a.g.m - b.g.m) || (a.g.d - b.g.d); });
+    var h = '<div class="doi-block"><h2>🕯 Lịch giỗ trong năm (âm lịch) — ' + rows.length + ' cụ</h2>';
+    h += '<table><tr><th>Ngày (ÂL)</th><th>Họ tên</th><th>Đời</th><th>Chức danh</th></tr>';
+    rows.forEach(function (x) {
+      h += '<tr><td><b>' + x.g.d + '/' + x.g.m + '</b></td>' +
+        '<td><span class="link" onclick="openDetail(' + x.p.ID + ')">' + esc(x.p.HoTen) + '</span></td>' +
+        '<td>' + esc(x.p.Doi) + '</td><td>' + esc(x.p.ChucDanh) + '</td></tr>';
+    });
+    h += '</table>';
+    h += '<p style="margin-top:8px;font-size:13px;color:#666">Ngày giỗ ghi theo âm lịch dạng <b>ngày/tháng</b>, trích từ phả đồ gốc.</p></div>';
+    document.getElementById('gioView').innerHTML = h;
+  }
+
+  // ============ Modal chi tiết / sửa ============
+  function openDetail(id) {
+    var p = byId[id];
+    if (!p) return;
+    var cha = byId[Number(p.ChaID)];
+    var vc = byId[Number(p.VoChongCuaID)];
+    var kids = childrenOf[id] || [];
+    var sps = spousesOf[id] || [];
+    var h = '';
+    h += '<div class="info-line"><b>' + esc(p.HoTen) + '</b>' + (p.GioiTinh ? ' (' + esc(p.GioiTinh) + ')' : '') + ' — ' + esc(doiLabel(Number(p.Doi))) + '</div>';
+    if (p.ChucDanh) h += '<div class="info-line">Chức danh: <b>' + esc(p.ChucDanh) + '</b></div>';
+    if (p.NgayGio) h += '<div class="info-line">🕯 Ngày giỗ: <b>' + esc(p.NgayGio) + '</b> (âm lịch)</div>';
+    if (p.NamSinh || p.NamMat) h += '<div class="info-line">Năm sinh — mất: ' + esc(p.NamSinh || '?') + ' — ' + esc(p.NamMat || '?') + '</div>';
+    if (cha) h += '<div class="info-line">Con của: <span class="link" onclick="openDetail(' + cha.ID + ')">' + esc(cha.HoTen) + '</span></div>';
+    if (vc) h += '<div class="info-line">' + (p.GioiTinh === 'Nam' ? 'Chồng' : 'Vợ') + ' của: <span class="link" onclick="openDetail(' + vc.ID + ')">' + esc(vc.HoTen) + '</span></div>';
+    if (sps.length) h += '<div class="info-line">Vợ/chồng: ' + sps.map(function (s) { return '<span class="link" onclick="openDetail(' + s.ID + ')">' + esc(s.HoTen) + '</span>'; }).join(', ') + '</div>';
+    if (kids.length) h += '<div class="info-line">Con (' + kids.length + '): ' + kids.map(function (k) { return '<span class="link" onclick="openDetail(' + k.ID + ')">' + esc(k.HoTen) + '</span>'; }).join(', ') + '</div>';
+    if (p.GhiChu) h += '<div class="info-line">📝 ' + esc(p.GhiChu) + '</div>';
+    h += '<div class="modal-actions">' +
+      '<button class="btn solid" onclick="openForm(' + id + ')">✏️ Sửa</button>' +
+      '<button class="btn" onclick="openForm(null,' + id + ',false)">+ Thêm con</button>' +
+      '<button class="btn" onclick="openForm(null,' + id + ',true)">+ Thêm vợ/chồng</button>' +
+      '<button class="btn danger" onclick="removePerson(' + id + ')">🗑 Xóa</button>' +
+      '</div>';
+    showModal(esc(p.HoTen), h);
+  }
+
+  function openForm(id, relatedId, asSpouse) {
+    var p = id ? byId[id] : {};
+    var rel = relatedId ? byId[relatedId] : null;
+    var doi = p.Doi || (rel ? (asSpouse ? Number(rel.Doi) : Number(rel.Doi) + 1) : 1);
+    var title = id ? 'Sửa: ' + p.HoTen
+      : (rel ? (asSpouse ? 'Thêm vợ/chồng cho cụ ' + rel.HoTen : 'Thêm con cho cụ ' + rel.HoTen) : 'Thêm thành viên');
+    var h = '<form onsubmit="submitForm(event)">';
+    h += '<input type="hidden" name="ID" value="' + (id || '') + '">';
+    h += '<input type="hidden" name="ChaID" value="' + esc(id ? (p.ChaID || '') : (!asSpouse && rel ? rel.ID : '')) + '">';
+    h += '<input type="hidden" name="VoChongCuaID" value="' + esc(id ? (p.VoChongCuaID || '') : (asSpouse && rel ? rel.ID : '')) + '">';
+    h += '<div class="field"><label>Họ tên *</label><input name="HoTen" required value="' + esc(p.HoTen || '') + '"></div>';
+    h += '<div class="row2">';
+    h += '<div class="field"><label>Giới tính</label><select name="GioiTinh">' +
+      ['', 'Nam', 'Nữ'].map(function (g) {
+        return '<option value="' + g + '"' + (p.GioiTinh === g ? ' selected' : '') + '>' + (g || '—') + '</option>';
+      }).join('') + '</select></div>';
+    h += '<div class="field"><label>Đời thứ</label><input name="Doi" type="number" min="1" value="' + esc(doi) + '"></div>';
+    h += '</div><div class="row2">';
+    h += '<div class="field"><label>Ngày giỗ (ÂL, vd 18/12)</label><input name="NgayGio" value="' + esc(p.NgayGio || '') + '"></div>';
+    h += '<div class="field"><label>Thứ tự anh chị em</label><input name="ThuTu" type="number" min="1" value="' + esc(p.ThuTu || '') + '"></div>';
+    h += '</div><div class="row2">';
+    h += '<div class="field"><label>Năm sinh</label><input name="NamSinh" value="' + esc(p.NamSinh || '') + '"></div>';
+    h += '<div class="field"><label>Năm mất</label><input name="NamMat" value="' + esc(p.NamMat || '') + '"></div>';
+    h += '</div>';
+    h += '<div class="field"><label>Chức danh (vd: Chi trưởng, Tổ cô...)</label><input name="ChucDanh" value="' + esc(p.ChucDanh || '') + '"></div>';
+    h += '<div class="field"><label>Ghi chú</label><textarea name="GhiChu">' + esc(p.GhiChu || '') + '</textarea></div>';
+    h += '<div class="modal-actions"><button type="submit" class="btn solid">💾 Lưu</button>' +
+      '<button type="button" class="btn" onclick="closeModal()">Hủy</button></div>';
+    h += '</form>';
+    showModal(title, h);
+  }
+
+  function submitForm(e) {
+    e.preventDefault();
+    var fd = new FormData(e.target);
+    var person = {};
+    fd.forEach(function (v, k) { person[k] = v; });
+    busy('Đang lưu...');
+    google.script.run
+      .withSuccessHandler(function (res) { onData(res); closeModal(); toast('✅ Đã lưu.'); })
+      .withFailureHandler(showError)
+      .savePerson(person);
+  }
+
+  function removePerson(id) {
+    var p = byId[id];
+    if (!confirm('Xóa "' + p.HoTen + '" khỏi gia phả?')) return;
+    busy('Đang xóa...');
+    google.script.run
+      .withSuccessHandler(function (res) { onData(res); closeModal(); toast('🗑 Đã xóa.'); })
+      .withFailureHandler(showError)
+      .deletePerson(id);
+  }
+
+  function showModal(title, bodyHtml) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = bodyHtml;
+    document.getElementById('overlay').classList.add('open');
+  }
+  function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+  document.getElementById('overlay').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  // ============ Tìm kiếm ============
+  function normalize(s) {
+    return String(s || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd');
+  }
+  document.getElementById('searchBox').addEventListener('input', function () {
+    var q = normalize(this.value.trim());
+    document.querySelectorAll('.card').forEach(function (c) { c.classList.remove('hl'); });
+    if (!q) return;
+    var hit = null;
+    DATA.persons.forEach(function (p) {
+      if (normalize(p.HoTen).indexOf(q) !== -1) {
+        var el = document.querySelector('.card[data-id="' + p.ID + '"]');
+        if (el) { el.classList.add('hl'); if (!hit) hit = el; }
+      }
+    });
+    if (hit && document.getElementById('treeView').classList.contains('active')) {
+      // đưa thẻ đầu tiên tìm được vào giữa màn hình
+      var wrap = document.getElementById('treeWrap');
+      var canvas = document.getElementById('treeCanvas');
+      var cr = canvas.getBoundingClientRect(), hr = hit.getBoundingClientRect();
+      var cx = (hr.left + hr.width / 2 - cr.left) / scale;
+      var cy = (hr.top + hr.height / 2 - cr.top) / scale;
+      panX = wrap.clientWidth / 2 - cx * scale;
+      panY = wrap.clientHeight / 2 - cy * scale;
+      applyTransform();
+    }
+  });
+
+  // ============ Tabs & nút chung ============
+  function switchView(idOrEl) {
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.classList.toggle('active', t.dataset.view === idOrEl);
+    });
+    document.querySelectorAll('.view').forEach(function (v) {
+      v.classList.toggle('active', v.id === idOrEl);
+    });
+    if (idOrEl === 'treeView') requestAnimationFrame(fitTree);
+  }
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () { switchView(t.dataset.view); });
+  });
+  document.getElementById('btnSheet').onclick = function () {
+    if (DATA.sheetUrl) window.open(DATA.sheetUrl, '_blank');
+  };
+  document.getElementById('btnAddRoot').onclick = function () { openForm(null, null, false); };
+
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.style.display = 'none'; }, 2500);
+  }
+  function busy(msg) { toast(msg); }
+  function showError(err) {
+    toast('⚠️ ' + (err && err.message ? err.message : err));
+    document.getElementById('loading').style.display = 'none';
+  }
+
+  switchView('treeView');
+  loadData();
+</script>
