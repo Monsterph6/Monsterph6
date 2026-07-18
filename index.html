@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gia phả — Chi họ Phạm Hiếu</title>
+<meta name="theme-color" content="#7b1e1e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gia phả">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #7b1e1e; overflow: hidden; }
+  #app {
+    border: 0; width: 100%; height: 100%; display: block;
+    background: #f7f1e3;
+  }
+  #splash {
+    position: fixed; inset: 0; z-index: 10;
+    background: linear-gradient(135deg, #5c1414, #8a2222);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', Roboto, sans-serif; color: #ffe9a8;
+    transition: opacity .4s; padding-top: env(safe-area-inset-top);
+  }
+  #splash.hide { opacity: 0; pointer-events: none; }
+  #splash .em { font-size: 84px; }
+  #splash .tt { font-size: 22px; font-weight: 700; margin-top: 10px; letter-spacing: 1px; }
+  #splash .st { font-size: 13px; margin-top: 18px; opacity: .8; }
+  #offline {
+    display: none; position: fixed; inset: 0; z-index: 20;
+    background: #5c1414; color: #ffe9a8; text-align: center;
+    font-family: 'Segoe UI', Roboto, sans-serif; padding: 40px 24px;
+  }
+  #offline h2 { margin-top: 30vh; }
+  #offline button {
+    margin-top: 16px; background: #c9a227; color: #3c2b00; border: none;
+    padding: 10px 22px; border-radius: 20px; font-size: 15px; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="em">🏮</div>
+  <div class="tt">GIA PHẢ HỌ PHẠM HIẾU</div>
+  <div class="st">⏳ Đang tải phả đồ...</div>
+</div>
+<div id="offline">
+  <h2>📡 Không có mạng</h2>
+  <p>Cần kết nối Internet để xem gia phả.</p>
+  <button onclick="location.reload()">Thử lại</button>
+</div>
+<iframe id="app" allow="fullscreen"
+  src="https://script.google.com/macros/s/AKfycbwj0feG3ubQU--ls_nLP8C2w-FQkx2Lx2MbeoeD50vEJVmbW7hpjhtafl2_1CFslwGT/exec"></iframe>
+<script>
+  var iframe = document.getElementById('app');
+  iframe.addEventListener('load', function () {
+    setTimeout(function () { document.getElementById('splash').classList.add('hide'); }, 400);
+  });
+  // Phòng iframe kẹt: sau 15s vẫn chưa load xong thì bỏ splash để lộ nội dung/lỗi thật.
+  setTimeout(function () { document.getElementById('splash').classList.add('hide'); }, 15000);
+
+  function updateOnline() {
+    document.getElementById('offline').style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online', function () { updateOnline(); location.reload(); });
+  window.addEventListener('offline', updateOnline);
+  updateOnline();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>
