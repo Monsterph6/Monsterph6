@@ -1,96 +1,91 @@
-# MU Auto Bãi — Tự động chạy bãi theo tọa độ (MU Online / Fast Mu)
+# MU Auto Bãi SS21 — Tự động chạy bãi theo tọa độ (MU Online Season 21 / Fast Mu)
 
-App tự động **chạy bãi theo tọa độ** cho MU Online (Fast Mu và các server private khác).
-Nó đọc tọa độ nhân vật trên màn hình bằng OCR, tự đi về bãi bạn đã set, đánh quái, nhặt đồ,
-tự uống HP/MP và quay lại bãi khi bị lệch.
+App auto **chạy bãi theo tọa độ** cho MU Online **Season 21** — thiết kế cho lối chơi **bằng chuột**
+của SS21 và server dạng **Fast Mu có reset / grand reset**.
 
-> ⚠️ **Lưu ý:** Đây là công cụ gửi phím/chuột ở mức ứng dụng (không can thiệp bộ nhớ game).
-> Một số server cấm dùng auto — bạn tự chịu trách nhiệm và nên kiểm tra luật của server trước khi dùng.
-> App chạy trên **Windows** (MU là game DirectX).
+> ⚠️ Công cụ này chỉ gửi chuột/phím ở mức ứng dụng (không can thiệp bộ nhớ game).
+> Một số server cấm auto ngoài — hãy kiểm tra luật server trước khi dùng. App chạy trên **Windows**.
 
 ---
 
-## Tính năng
-- 🧭 **Chạy theo tọa độ:** đọc X,Y của nhân vật bằng OCR → tự đi về bãi đã set, giữ trong bán kính.
-- ⚔️ **Auto đánh:** spam phím skill theo chu kỳ (hoặc giữ phím).
-- 🎒 **Auto nhặt đồ** theo phím pickup.
-- 🧪 **Auto HP/MP:** đọc màu thanh máu/mana, tự uống khi tụt dưới ngưỡng.
-- ✨ **Auto buff** định kỳ.
-- ⌨️ **Hotkey toàn cục:** `F8` bật/tắt, `F9` dừng khẩn cấp.
-- 🖥️ **Giao diện** để chỉnh và lưu cấu hình, có nút lấy tọa độ chuột & test thanh máu.
+## Cách hoạt động (SS21)
+
+SS21 chơi bằng chuột: **chuột trái = di chuyển**, **chuột phải = đánh skill tại con trỏ**, và game có
+sẵn **MU Helper** (auto trong game, bật/tắt bằng phím `Home`) tự đánh + nhặt đồ + uống pot.
+
+App này đóng vai **người canh tọa độ + quản lý reset**:
+
+```
+ ┌──────────────────────────────────────────────────────────────┐
+ │  OCR đọc tọa độ X,Y trên màn hình                            │
+ │    ├─ Lệch khỏi bãi → TẮT MU Helper → chuột trái đi về bãi   │
+ │    └─ Tới bãi       → BẬT MU Helper (Helper lo đánh/nhặt/pot)│
+ │  OCR đọc LEVEL                                               │
+ │    └─ Đủ level → gõ /reset → đếm đủ mốc → /grandreset        │
+ │                → /move về map → chạy lại bãi                 │
+ └──────────────────────────────────────────────────────────────┘
+```
+
+### 2 chế độ đánh
+| Chế độ | Mô tả |
+|--------|-------|
+| **MU Helper** (khuyên dùng) | App chỉ canh tọa độ và bật/tắt Helper đúng lúc. Đánh, nhặt đồ, uống pot do Helper trong game lo — **nhớ cấu hình Helper trước** (icon cạnh mini-map hoặc phím `Z`). |
+| **Chuột phải** | App tự đánh: chuột phải (skill) xoay quanh nhân vật theo 8 hướng. Dùng khi server không có/không muốn dùng Helper. |
+
+### Tính năng
+- 🧭 Chạy bãi theo tọa độ, tự quay lại khi lệch, tự lách khi bị kẹt
+- 🧮 **Tự hiệu chỉnh hướng đi**: camera MU là isometric nên hướng X/Y game ≠ ngang/dọc màn hình —
+  bấm nút **"Hiệu chỉnh hướng đi (auto)"**, app tự click thử 2 hướng, đọc tọa độ đổi thế nào và tính ra ma trận hướng
+- ♻️ **Auto reset / grand reset** (cho Fast Mu): đọc level bằng OCR → đủ level gõ `/reset`,
+  đếm số lần reset → đủ mốc gõ `/grandreset`, xong `/move` về map và chạy lại bãi
+- ⚔️ Đánh bằng chuột phải hoặc phối hợp MU Helper
+- 🧪 Auto HP/MP theo màu pixel (tùy chọn — mặc định tắt vì Helper đã lo)
+- ⌨️ Hotkey toàn cục `F8` bật/tắt, `F9` dừng khẩn cấp
 
 ---
 
 ## Cài đặt
 
-1. Cài **Python 3.10+**: https://www.python.org/downloads/ (nhớ tick *Add Python to PATH*).
-2. Cài **Tesseract-OCR** (để đọc tọa độ): https://github.com/UB-Mannheim/tesseract/wiki
-   - Mặc định cài vào `C:\Program Files\Tesseract-OCR\tesseract.exe`.
-   - Nếu bạn **không muốn dùng OCR**, tắt ô "Bật đọc tọa độ OCR" — app vẫn auto đánh/pot/nhặt và
-     định kỳ click về giữa màn hình để giữ vị trí.
-3. Chạy `run.bat` (lần đầu nó tự `pip install -r requirements.txt`).
-   - Nên **chạy bằng quyền Administrator** để hotkey toàn cục và gửi phím vào game hoạt động.
-
-Hoặc thủ công:
-```bat
-pip install -r requirements.txt
-python muauto.py
-```
+1. Cài **Python 3.10+**: https://www.python.org/downloads/ (tick *Add Python to PATH*).
+2. Cài **Tesseract-OCR** (đọc tọa độ + level): https://github.com/UB-Mannheim/tesseract/wiki
+   (mặc định `C:\Program Files\Tesseract-OCR\tesseract.exe`).
+3. Chạy `run.bat` **bằng quyền Administrator** (lần đầu tự cài thư viện).
 
 ---
 
-## Cách chỉnh cho đúng server của bạn
+## Thiết lập lần đầu (5 bước)
 
-### 1) Vùng OCR đọc tọa độ (tab **Bãi / Tọa độ**)
-- Trong MU thường có ô hiển thị tọa độ (vd `130, 130`). Xác định khung chữ nhật bao quanh số đó.
-- Nhập `Vùng OCR [L,T,W,H]` = `left,top,width,height` (pixel màn hình).
-  - Mẹo: dùng nút **"Lấy tọa độ chuột"** ở tab Chính — rê chuột tới góc trên-trái của ô tọa độ,
-    giữ 3s để lấy `L,T`; ước lượng `W,H` cho vừa chữ.
-- `Tọa độ X/Y đích`: tọa độ bãi bạn muốn đứng.
-- `Bán kính`: cho phép lệch bao nhiêu ô trước khi đi về.
-- `Bước đi`: mỗi lần đi, app click cách tâm màn hình bao nhiêu pixel (90 là hợp lý).
+1. **Vùng OCR tọa độ** (tab *Bãi / Tọa độ*): tìm ô hiển thị `X, Y` trên màn hình game.
+   Dùng nút **"Lấy tọa độ chuột"** (tab Chính) lấy góc trên-trái → nhập `L,T,W,H`.
+   Bấm **"Test đọc tọa độ (OCR)"** đến khi đọc đúng.
+2. **Hiệu chỉnh hướng đi**: đứng chỗ trống trong game → bấm **"Hiệu chỉnh hướng đi (auto)"**.
+   App click thử 2 hướng và tự tính ma trận. Bấm **"Lưu config"**.
+3. **Set bãi**: nhập `Tọa độ X/Y đích` + bán kính (tab *Bãi / Tọa độ*).
+4. **Chọn chế độ đánh** (tab *Đánh quái*): để **MU Helper** nếu server có Helper
+   (cấu hình Helper trong game trước — skill, range, nhặt đồ, pot).
+5. **Auto reset** (tab *Reset*, tùy chọn): set vùng OCR level (test bằng nút **"Test đọc level"**),
+   level reset (vd 400), lệnh reset của server bạn (vd `/reset`), lệnh về map (vd `/move tarkan`).
+   Muốn grand reset tự động thì bật thêm và khai số lần reset cần (vd 100).
 
-> Không có/không đọc được ô tọa độ? Tắt OCR, app sẽ dùng chế độ "về giữa màn hình" định kỳ.
-
-### 2) Phím & chu kỳ (tab **Săn quái**)
-- `Phím đánh`: ví dụ `e` (một hoặc nhiều phím cách nhau dấu phẩy: `e,r`).
-- `Phím nhặt đồ`, `Phím buff` theo phím bạn đã gán trong game.
-
-### 3) Auto HP/MP (tab **HP/MP**)
-- `Pixel HP bar X/Y`: tọa độ **một điểm** nằm giữa thanh máu (khi máu đầy điểm đó có màu đỏ).
-  - Dùng "Lấy tọa độ chuột" để lấy, rồi bấm **"Test đọc HP/MP"** để xem % ước lượng.
-- `Ngưỡng HP/MP` (0..1): tụt dưới ngưỡng thì uống. Vd `0.55` = uống khi máu dưới 55%.
-- `full_color` / `empty_color` trong `config.json`: màu RGB lúc đầy và lúc cạn của thanh — chỉnh nếu
-  server dùng skin thanh máu khác.
+Xong bấm **F8** để chạy. App chờ 3 giây để bạn đưa chuột vào cửa sổ game.
 
 ---
 
-## Hotkey
-| Phím | Chức năng |
-|------|-----------|
-| `F8` | Bật / Tắt auto |
-| `F9` | Dừng khẩn cấp (panic) |
-
-Sau khi bấm bật, app chờ `start_delay_sec` giây (mặc định 3s) để bạn đưa chuột vào cửa sổ game.
-
----
-
-## Xử lý sự cố
-- **Không gửi được phím vào game:** chạy app bằng **Administrator**. MU là DirectX nên app dùng
-  `pydirectinput`; nếu vẫn không được, thử chạy game ở chế độ **cửa sổ / windowed**.
-- **OCR đọc sai số:** chỉnh lại vùng OCR ôm sát số hơn; đảm bảo chữ tọa độ rõ, nền tối. Có thể chỉnh
-  ngưỡng nhị phân trong hàm `ocr_coords`.
-- **Uống pot sai lúc:** bấm "Test đọc HP/MP" để soi %; chỉnh lại pixel X/Y hoặc `full/empty_color`.
-- **Hotkey không ăn:** thư viện `keyboard` cần quyền Admin; hoặc dùng nút trong giao diện.
+## Lưu ý & xử lý sự cố
+- **Không gửi được chuột/phím vào game** → chạy bằng **Administrator**; thử để game ở chế độ **windowed**.
+- **OCR sai** → thu nhỏ vùng OCR ôm sát con số; số phải rõ nét trên nền tối.
+- **Nhân vật đi sai hướng** → chạy lại "Hiệu chỉnh hướng đi (auto)" (mỗi lần đổi góc camera/độ phân giải nên hiệu chỉnh lại).
+- **Helper bị lệch trạng thái** (app tưởng đang bật mà game đã tắt — vd sau khi chết):
+  bấm `Home` thủ công 1 lần cho khớp, hoặc F8 tắt/bật lại app.
+- **Lệnh reset của server khác** (`/reset auto`, `/xoadiem`, …) → sửa ở tab Reset cho khớp server bạn.
+- Số lần reset được **lưu tự động** vào `config.json` (`resets_done`) nên tắt app không mất.
 
 ---
 
 ## Cấu trúc file
 ```
-muauto.py             # App chính (GUI + bot loop)
-config.example.json   # Cấu hình mẫu (app tự tạo config.json khi bạn lưu)
-requirements.txt      # Thư viện cần cài
+muauto.py             # App chính (GUI + bot)
+config.example.json   # Cấu hình mẫu (app tạo config.json khi bạn bấm Lưu)
+requirements.txt      # Thư viện
 run.bat               # Chạy nhanh trên Windows
 ```
-
-Chỉnh xong nhớ bấm **"Lưu config"** để ghi ra `config.json`.

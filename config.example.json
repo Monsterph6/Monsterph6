@@ -5,32 +5,51 @@
     "panic": "f9"
   },
   "spot": {
-    "name": "Bai Land1",
+    "name": "Bai san SS21",
     "target_x": 130,
     "target_y": 130,
-    "radius": 8,
-    "walk_step_px": 90,
-    "walk_click_delay": 0.35,
-    "recenter_every": 6.0
+    "radius": 10,
+    "walk_step_px": 110,
+    "walk_click_delay": 0.45,
+    "stuck_timeout": 8.0
   },
   "coord_ocr": {
     "enabled": true,
-    "region": [10, 40, 150, 22],
+    "region": [10, 40, 160, 24],
     "tesseract_cmd": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
     "read_interval": 1.0
   },
-  "hunt": {
-    "attack_keys": ["e"],
-    "attack_hold": false,
-    "attack_interval": 0.25,
-    "pickup_key": "z",
-    "pickup_interval": 2.5,
-    "buff_keys": ["c", "v"],
-    "buff_interval": 60.0,
-    "move_cmd_key": null
+  "axis": {
+    "x_screen": [0.89, -0.45],
+    "y_screen": [-0.89, -0.45],
+    "calib_step_px": 140,
+    "calib_wait": 2.0
+  },
+  "attack": {
+    "mode": "helper",
+    "helper_toggle_key": "home",
+    "helper_rearm_delay": 3.0,
+    "mouse_radius_px": 170,
+    "mouse_interval": 0.5,
+    "mouse_angles": 8,
+    "pickup_key": "space",
+    "pickup_interval": 0
+  },
+  "reset": {
+    "enabled": false,
+    "level_region": [400, 10, 90, 22],
+    "reset_level": 400,
+    "reset_command": "/reset",
+    "check_interval": 20.0,
+    "post_reset_wait": 6.0,
+    "after_reset_move_cmd": "",
+    "grand_enabled": false,
+    "grand_command": "/grandreset",
+    "grand_after_resets": 100,
+    "resets_done": 0
   },
   "potions": {
-    "enabled": true,
+    "enabled": false,
     "hp_key": "q",
     "mp_key": "w",
     "hp_bar": {"x": 40, "y": 700, "threshold": 0.55},
