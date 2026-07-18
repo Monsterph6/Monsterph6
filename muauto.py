@@ -24,6 +24,7 @@ Hotkey: F8 bat/tat, F9 dung khan cap. Chay tren WINDOWS bang quyen Administrator
 
 import json
 import os
+import re
 import sys
 import time
 import math
@@ -165,6 +166,150 @@ def click_at(x, y, button="left", jitter=True, move_first=True):
         except Exception:
             pass
     return False
+
+
+# =====================================================================================
+#  CUA SO GAME (Win32): tim cua so, doc title (Level/RR/GR), vi tri client
+# =====================================================================================
+_SELECTED_HWND = None  # cua so game nguoi dung chon trong GUI (uu tien tuyet doi)
+
+
+def set_selected_hwnd(hwnd):
+    global _SELECTED_HWND
+    _SELECTED_HWND = hwnd
+
+
+def _window_title_of(hwnd):
+    try:
+        import ctypes
+        user32 = ctypes.windll.user32
+        n = user32.GetWindowTextLengthW(hwnd)
+        if n <= 0:
+            return ""
+        buf = ctypes.create_unicode_buffer(n + 1)
+        user32.GetWindowTextW(hwnd, buf, n + 1)
+        return buf.value
+    except Exception:
+        return ""
+
+
+def list_windows():
+    """Liet ke cac cua so dang mo: [(hwnd, title, ten_exe), ...]."""
+    if os.name != "nt":
+        return []
+    out = []
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+
+        def exe_of(hwnd):
+            try:
+                pid = wintypes.DWORD()
+                user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                # PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+                h = kernel32.OpenProcess(0x1000, False, pid.value)
+                if not h:
+                    return ""
+                try:
+                    buf = ctypes.create_unicode_buffer(512)
+                    size = wintypes.DWORD(512)
+                    if kernel32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(size)):
+                        return os.path.basename(buf.value)
+                finally:
+                    kernel32.CloseHandle(h)
+            except Exception:
+                pass
+            return ""
+
+        @ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+        def cb(hwnd, lparam):
+            if user32.IsWindowVisible(hwnd):
+                title = _window_title_of(hwnd)
+                if title.strip():
+                    out.append((hwnd, title, exe_of(hwnd)))
+            return True
+
+        user32.EnumWindows(cb, 0)
+    except Exception:
+        pass
+    return out
+
+
+def _find_game_window(title_substr):
+    """Tim cua so game. Uu tien cua so da CHON trong GUI; sau do moi tim theo
+    tu khoa title. Tra ve (hwnd, title) hoac None."""
+    if os.name != "nt":
+        return None
+    try:
+        import ctypes
+        user32 = ctypes.windll.user32
+        # 1) Cua so nguoi dung da chon (chinh xac nhat, ho tro mo nhieu acc)
+        if _SELECTED_HWND and user32.IsWindow(_SELECTED_HWND):
+            return (_SELECTED_HWND, _window_title_of(_SELECTED_HWND))
+        # 2) Tim theo tu khoa
+        if not title_substr:
+            return None
+        for hwnd, title, _exe in list_windows():
+            if title_substr.lower() in title.lower():
+                return (hwnd, title)
+        return None
+    except Exception:
+        return None
+
+
+def get_game_title(title_substr):
+    """Tra ve chuoi title day du cua cua so game, hoac None."""
+    r = _find_game_window(title_substr)
+    return r[1] if r else None
+
+
+def parse_title_stats(title):
+    """Phan tich title kieu FASTMU:
+    [FASTMU] [Char: MonsF] [Level: 400 + 451] [RR: 14 / GR: 0] - ServerTime: ...
+    Tra ve dict {char, level, master, rr, gr} (thieu truong nao thi None).
+    """
+    if not title:
+        return None
+    out = {"char": None, "level": None, "master": None, "rr": None, "gr": None}
+    m = re.search(r"Char:\s*([^\]]+)\]", title)
+    if m:
+        out["char"] = m.group(1).strip()
+    m = re.search(r"Level:\s*(\d+)(?:\s*\+\s*(\d+))?", title)
+    if m:
+        out["level"] = int(m.group(1))
+        out["master"] = int(m.group(2)) if m.group(2) else None
+    m = re.search(r"RR:\s*(\d+)", title)
+    if m:
+        out["rr"] = int(m.group(1))
+    m = re.search(r"GR:\s*(\d+)", title)
+    if m:
+        out["gr"] = int(m.group(1))
+    if out["level"] is None and out["rr"] is None:
+        return None
+    return out
+
+
+def get_client_rect(title_substr):
+    """Vi tri + kich thuoc vung client cua cua so game tren man hinh.
+    Tra ve (left, top, width, height) hoac None."""
+    r = _find_game_window(title_substr)
+    if not r:
+        return None
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        hwnd = r[0]
+        rc = wintypes.RECT()
+        if not user32.GetClientRect(hwnd, ctypes.byref(rc)):
+            return None
+        pt = wintypes.POINT(0, 0)
+        user32.ClientToScreen(hwnd, ctypes.byref(pt))
+        return (pt.x, pt.y, rc.right - rc.left, rc.bottom - rc.top)
+    except Exception:
+        return None
 
 
 # =====================================================================================
@@ -311,6 +456,32 @@ class AutoBot:
             return base * random.uniform(0.85, 1.15)
         return base
 
+    # ---------- cua so game ----------
+    def _client_rect(self):
+        """(left, top, w, h) cua vung client game; fallback = toan man hinh."""
+        rect = get_client_rect(self.cfg.get("window_title", ""))
+        if rect:
+            return rect
+        sw, sh = screen_size()
+        return (0, 0, sw, sh)
+
+    def _abs_region(self, region):
+        """Doi region [L,T,W,H] tuong doi cua so game -> toa do man hinh tuyet doi."""
+        if not region:
+            return region
+        if self.cfg.get("coord_ocr", {}).get("relative_to_window", True):
+            l, t, _, _ = self._client_rect()
+            return [region[0] + l, region[1] + t, region[2], region[3]]
+        return region
+
+    def _center(self):
+        """Tam cua so game (noi nhan vat dung)."""
+        l, t, w, h = self._client_rect()
+        return (l + w // 2, t + h // 2)
+
+    def title_stats(self):
+        return parse_title_stats(get_game_title(self.cfg.get("window_title", "")))
+
     # ---------- huong di: game -> man hinh ----------
     def _game_to_screen(self, dx, dy):
         """Chuyen vector (dx, dy) trong GAME thanh vector man hinh theo ma tran axis."""
@@ -325,7 +496,7 @@ class AutoBot:
 
     def read_coord(self):
         ocr = self.cfg["coord_ocr"]
-        return ocr_coords(ocr.get("region"), ocr.get("tesseract_cmd"))
+        return ocr_coords(self._abs_region(ocr.get("region")), ocr.get("tesseract_cmd"))
 
     def calibrate_axis(self):
         """Tu hieu chinh huong: click thu 2 huong man hinh, xem toa do game doi the nao.
@@ -335,8 +506,7 @@ class AutoBot:
         ax = self.cfg["axis"]
         step = ax.get("calib_step_px", 140)
         wait = ax.get("calib_wait", 2.0)
-        sw, sh = screen_size()
-        cx, cy = sw // 2, sh // 2
+        cx, cy = self._center()
 
         self.log("[CALIB] Bat dau hieu chinh huong di (dung yen, khong dung chuot)...")
         p0 = self.read_coord()
@@ -529,8 +699,7 @@ class AutoBot:
 
     def _walk_toward(self, dx, dy, spot):
         """Chuot trai click xuong dat theo huong bai (da qua ma tran isometric)."""
-        sw, sh = screen_size()
-        cx, cy = sw // 2, sh // 2
+        cx, cy = self._center()
         ux, uy = self._game_to_screen(dx, dy)
         step = spot.get("walk_step_px", 110)
         click_at(cx + ux * step, cy + uy * step, button="left")
@@ -538,8 +707,7 @@ class AutoBot:
 
     def _unstick(self, spot):
         """Bi ket (khong tien bo): click sang huong ngau nhien de lach vat can."""
-        sw, sh = screen_size()
-        cx, cy = sw // 2, sh // 2
+        cx, cy = self._center()
         a = random.uniform(0, 2 * math.pi)
         step = spot.get("walk_step_px", 110)
         self.log("[BOT] Co ve bi ket, thu lach sang huong khac...")
@@ -548,28 +716,38 @@ class AutoBot:
 
     def _mouse_attack(self, angle_i, atk):
         """Chuot phai (skill) tai diem xoay quanh nhan vat."""
-        sw, sh = screen_size()
-        cx, cy = sw // 2, sh // 2
+        cx, cy = self._center()
         n = max(1, int(atk.get("mouse_angles", 8)))
         a = (2 * math.pi / n) * angle_i + random.uniform(-0.2, 0.2)
         r = atk.get("mouse_radius_px", 170) * random.uniform(0.8, 1.1)
         click_at(cx + math.cos(a) * r, cy + math.sin(a) * r, button="right")
 
     def _check_reset(self, rst, mode):
-        """Doc level; du level thi go /reset (va /grandreset khi du so lan).
+        """Kiem tra level -> go /reset, du RR -> go /grandreset.
 
+        Uu tien doc Level/RR tu TITLE cua so game (kieu FASTMU:
+        "[Level: 400 + 451] [RR: 14 / GR: 0]") - chinh xac 100%.
+        Khong co title thi fallback OCR vung level_region.
         Tra ve True neu vua reset (de vong lap chinh lam moi trang thai di bai).
         """
-        lvl = ocr_number(rst.get("level_region"),
-                         self.cfg["coord_ocr"].get("tesseract_cmd"))
+        stats = self.title_stats()
+        if stats and stats.get("level") is not None:
+            lvl = stats["level"]
+            src = "title"
+        else:
+            lvl = ocr_number(self._abs_region(rst.get("level_region")),
+                             self.cfg["coord_ocr"].get("tesseract_cmd"))
+            src = "ocr"
         if lvl is None:
             return False
         need = int(rst.get("reset_level", 400))
-        self.status = f"Level {lvl}/{need} | {self.status}"
+        if stats:
+            self.status = (f"Lv {lvl}/{need} RR {stats.get('rr')} "
+                           f"GR {stats.get('gr')} | {self.status}")
         if lvl < need:
             return False
 
-        self.log(f"[RESET] Level {lvl} >= {need} -> chuan bi reset...")
+        self.log(f"[RESET] Level {lvl} >= {need} (nguon: {src}) -> chuan bi reset...")
         # Tat MU Helper truoc khi go lenh (de phim Enter khong bi nuot)
         if mode == "helper" and self.helper_on:
             self._helper_set(False)
@@ -579,18 +757,28 @@ class AutoBot:
         self.log(f"[RESET] Da gui lenh {rst.get('reset_command', '/reset')}")
         time.sleep(float(rst.get("post_reset_wait", 6.0)))
 
-        # Dem so lan reset -> grand reset
-        rst["resets_done"] = int(rst.get("resets_done", 0)) + 1
+        # Xac nhan reset qua title (level tut xuong / RR tang)
+        new_stats = self.title_stats()
+        if new_stats and new_stats.get("rr") is not None:
+            rst["resets_done"] = new_stats["rr"]
+            self.log(f"[RESET] RR hien tai (tu title): {new_stats['rr']}"
+                     + (f", GR: {new_stats['gr']}" if new_stats.get("gr") is not None else ""))
+            if new_stats.get("level") is not None and new_stats["level"] >= need:
+                self.log("[RESET] Level chua tut sau khi go lenh - co the lenh sai "
+                         "hoac thieu dieu kien (zen/point?). Kiem tra lai!")
+        else:
+            rst["resets_done"] = int(rst.get("resets_done", 0)) + 1
+            self.log(f"[RESET] Tong so lan reset (dem noi bo): {rst['resets_done']}")
         try:
             save_config(self.cfg)  # luu bo dem de tat app khong mat
         except Exception:
             pass
-        self.log(f"[RESET] Tong so lan reset: {rst['resets_done']}")
 
         if rst.get("grand_enabled") and \
-           rst["resets_done"] >= int(rst.get("grand_after_resets", 100)):
+           int(rst.get("resets_done", 0)) >= int(rst.get("grand_after_resets", 100)):
             type_chat(rst.get("grand_command", "/grandreset"))
-            self.log(f"[RESET] Du {rst['resets_done']} lan -> da gui "
+            self.log(f"[RESET] RR {rst['resets_done']} >= "
+                     f"{rst.get('grand_after_resets')} -> da gui "
                      f"{rst.get('grand_command', '/grandreset')}!")
             rst["resets_done"] = 0
             try:
@@ -607,11 +795,21 @@ class AutoBot:
             time.sleep(3.0)
         return True
 
+    def _bar_ratio(self, pots, bar):
+        """% day cua 1 thanh/qua cau. Mau full/empty rieng tung bar (HP do, MP xanh)."""
+        x, y = bar["x"], bar["y"]
+        if pots.get("relative_to_window", True):
+            l, t, _, _ = self._client_rect()
+            x, y = x + l, y + t
+        full = bar.get("full", pots.get("full_color", [180, 40, 40]))
+        empty = bar.get("empty", pots.get("empty_color", [40, 15, 15]))
+        return bar_fill_ratio(x, y, full, empty)
+
     def _check_pot(self, pots):
         used = False
         try:
             hp = pots["hp_bar"]
-            ratio = bar_fill_ratio(hp["x"], hp["y"], pots["full_color"], pots["empty_color"])
+            ratio = self._bar_ratio(pots, hp)
             if ratio < hp.get("threshold", 0.55):
                 press_key(pots.get("hp_key"))
                 self.log(f"[POT] HP {ratio:.0%} -> uong mau.")
@@ -620,7 +818,7 @@ class AutoBot:
             pass
         try:
             mp = pots["mp_bar"]
-            ratio = bar_fill_ratio(mp["x"], mp["y"], pots["full_color"], pots["empty_color"])
+            ratio = self._bar_ratio(pots, mp)
             if ratio < mp.get("threshold", 0.30):
                 press_key(pots.get("mp_key"))
                 self.log(f"[POT] MP {ratio:.0%} -> uong mana.")
@@ -644,6 +842,7 @@ class App:
         self._build()
         self._register_hotkeys()
         self._poll_status()
+        self.root.after(300, lambda: self.refresh_windows(silent=True))
         if _IMPORT_ERRORS:
             self.log("[!] Thieu thu vien (cai bang: pip install -r requirements.txt):")
             for k, v in _IMPORT_ERRORS.items():
@@ -665,6 +864,18 @@ class App:
         nb.add(f_pot, text="HP/MP (tuy chon)")
 
         # --- Tab Chinh ---
+        # Chon cua so game tu danh sach (chinh xac, ho tro mo nhieu acc)
+        fw = ttk.LabelFrame(f_main, text="Cua so game MU")
+        fw.pack(fill="x", padx=4, pady=6)
+        fw1 = ttk.Frame(fw)
+        fw1.pack(fill="x", padx=4, pady=4)
+        self.win_var = tk.StringVar()
+        self.cbo_win = ttk.Combobox(fw1, textvariable=self.win_var, state="readonly")
+        self.cbo_win.pack(side="left", fill="x", expand=True, padx=2)
+        self.cbo_win.bind("<<ComboboxSelected>>", self.on_pick_window)
+        ttk.Button(fw1, text="Lam moi", width=10, command=self.refresh_windows).pack(side="left", padx=2)
+        self._win_list = []
+
         top = ttk.Frame(f_main)
         top.pack(fill="x", pady=6)
         self.btn_toggle = ttk.Button(top, text="BAT (F8)", command=self.toggle)
@@ -675,6 +886,7 @@ class App:
         top2 = ttk.Frame(f_main)
         top2.pack(fill="x", pady=2)
         ttk.Button(top2, text="Test doc toa do (OCR)", command=self.test_ocr).pack(side="left", padx=4)
+        ttk.Button(top2, text="Test title (Level/RR/GR)", command=self.test_title).pack(side="left", padx=4)
         ttk.Button(top2, text="Hieu chinh huong di (auto)", command=self.calibrate).pack(side="left", padx=4)
 
         self.lbl_status = ttk.Label(f_main, text="Trang thai: Dung", foreground="#a00")
@@ -685,6 +897,7 @@ class App:
         self.txt.pack(fill="both", expand=True, padx=4, pady=4)
 
         # --- Tab Bai / Toa do ---
+        self._row(f_spot, "Tu khoa title cua so game", ["window_title"])
         self._row(f_spot, "Ten bai", ["spot", "name"])
         self._row(f_spot, "Toa do X dich", ["spot", "target_x"], int)
         self._row(f_spot, "Toa do Y dich", ["spot", "target_y"], int)
@@ -701,16 +914,16 @@ class App:
         fr = ttk.Frame(f_atk)
         fr.pack(fill="x", padx=6, pady=4)
         ttk.Label(fr, text="Che do danh", width=28).pack(side="left")
-        self.mode_var = tk.StringVar(value=self.cfg["attack"].get("mode", "helper"))
-        ttk.Radiobutton(fr, text="MU Helper (khuyen dung)", variable=self.mode_var,
-                        value="helper").pack(side="left", padx=2)
-        ttk.Radiobutton(fr, text="Chuot phai", variable=self.mode_var,
+        self.mode_var = tk.StringVar(value=self.cfg["attack"].get("mode", "mouse"))
+        ttk.Radiobutton(fr, text="Chuot phai (khuyen dung)", variable=self.mode_var,
                         value="mouse").pack(side="left", padx=2)
+        ttk.Radiobutton(fr, text="MU Helper", variable=self.mode_var,
+                        value="helper").pack(side="left", padx=2)
         ttk.Label(f_atk, foreground="#555", wraplength=520, justify="left", text=(
-            "MU Helper: toi bai app tu bam phim Home de BAT auto trong game; "
-            "lech bai thi TAT Helper -> chuot trai di ve -> BAT lai. Danh/nhat do/uong pot "
-            "do Helper trong game lo (nho cau hinh Helper truoc: nut Z hoac icon canh mini-map).\n"
-            "Chuot phai: app tu danh skill bang chuot phai xoay quanh nhan vat."
+            "Chuot phai: app tu danh skill bang chuot phai xoay quanh nhan vat "
+            "(dung cho server da DONG MU Helper nhu FASTMU).\n"
+            "MU Helper: chi dung neu server cho phep - toi bai app bam Home de BAT auto "
+            "trong game, lech bai thi TAT -> di ve -> BAT lai."
         )).pack(anchor="w", padx=8, pady=4)
         ttk.Separator(f_atk).pack(fill="x", pady=4)
         self._row(f_atk, "Phim bat/tat MU Helper", ["attack", "helper_toggle_key"])
@@ -901,13 +1114,78 @@ class App:
 
     def test_bars(self):
         self._collect()
+        self.bot.cfg = self.cfg
         p = self.cfg["potions"]
         try:
-            hp = bar_fill_ratio(p["hp_bar"]["x"], p["hp_bar"]["y"], p["full_color"], p["empty_color"])
-            mp = bar_fill_ratio(p["mp_bar"]["x"], p["mp_bar"]["y"], p["full_color"], p["empty_color"])
+            hp = self.bot._bar_ratio(p, p["hp_bar"])
+            mp = self.bot._bar_ratio(p, p["mp_bar"])
             self.log(f"[TEST] HP~{hp:.0%}  MP~{mp:.0%}")
         except Exception as e:
             self.log(f"[TEST] Loi doc bar: {e}")
+
+    def refresh_windows(self, silent=False):
+        """Nap lai danh sach cua so dang mo vao combobox."""
+        self._win_list = list_windows()
+        kw = (self.cfg.get("window_title") or "").lower()
+        # Uu tien day cua so giong game len dau danh sach
+        self._win_list.sort(key=lambda w: 0 if (kw and kw in w[1].lower()) else 1)
+        vals = [f"{title}   [{exe}]" if exe else title for _hw, title, exe in self._win_list]
+        self.cbo_win["values"] = vals
+        if not vals:
+            if not silent:
+                self.log("[WIN] Khong liet ke duoc cua so (chi chay tren Windows).")
+            return
+        # Tu chon san cua so khop tu khoa
+        if kw:
+            for i, (_hw, title, _exe) in enumerate(self._win_list):
+                if kw in title.lower():
+                    self.cbo_win.current(i)
+                    self.on_pick_window()
+                    break
+        if not silent:
+            self.log(f"[WIN] Tim thay {len(vals)} cua so. Chon dung cua so MU trong danh sach.")
+
+    def on_pick_window(self, _event=None):
+        i = self.cbo_win.current()
+        if i < 0 or i >= len(self._win_list):
+            return
+        hwnd, title, exe = self._win_list[i]
+        set_selected_hwnd(hwnd)
+        self.log(f"[WIN] Da chon cua so: {title}" + (f" ({exe})" if exe else ""))
+        # Luu tu khoa on dinh de lan sau tu nhan lai cua so
+        # (title FASTMU doi lien tuc vi co level/gio server -> dung phan on dinh)
+        m = re.search(r"Char:\s*[^\]]+\]", title)
+        if m:
+            kw = m.group(0).rstrip("]")
+        else:
+            kw = title.split("]")[0].lstrip("[") if "]" in title else title[:20]
+        kw = kw.strip()
+        if kw:
+            self.cfg["window_title"] = kw
+            v = self.vars.get(("window_title",))
+            if v:
+                v[0].set(kw)
+        st = parse_title_stats(title)
+        if st:
+            self.log(f"[WIN] Nhan dien: Char={st['char']} Level={st['level']} "
+                     f"RR={st['rr']} GR={st['gr']}")
+
+    def test_title(self):
+        self._collect()
+        self.bot.cfg = self.cfg
+        title = get_game_title(self.cfg.get("window_title", ""))
+        if not title:
+            self.log(f"[TITLE] Khong tim thay cua so chua '{self.cfg.get('window_title')}'. "
+                     "Sua o 'Tu khoa title cua so game' (tab Bai/Toa do).")
+            return
+        self.log(f"[TITLE] {title}")
+        st = parse_title_stats(title)
+        if st:
+            self.log(f"[TITLE] Char={st['char']} Level={st['level']}"
+                     + (f"+{st['master']}" if st.get("master") else "")
+                     + f" RR={st['rr']} GR={st['gr']}")
+        else:
+            self.log("[TITLE] Khong phan tich duoc Level/RR/GR tu title (se dung OCR).")
 
     def _register_hotkeys(self):
         if kb is None:

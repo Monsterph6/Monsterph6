@@ -8,23 +8,28 @@ của SS21 và server dạng **Fast Mu có reset / grand reset**.
 
 ---
 
-## Cách hoạt động (SS21)
+## Cách hoạt động (SS21 / FASTMU)
 
-SS21 chơi bằng chuột: **chuột trái = di chuyển**, **chuột phải = đánh skill tại con trỏ**, và game có
-sẵn **MU Helper** (auto trong game, bật/tắt bằng phím `Home`) tự đánh + nhặt đồ + uống pot.
-
-App này đóng vai **người canh tọa độ + quản lý reset**:
+SS21 chơi bằng chuột: **chuột trái = di chuyển**, **chuột phải = đánh skill tại con trỏ**.
+Nhiều server (như FASTMU) đã **đóng MU Helper** và bot trong game đòi VIP — app này auto từ bên ngoài:
 
 ```
- ┌──────────────────────────────────────────────────────────────┐
- │  OCR đọc tọa độ X,Y trên màn hình                            │
- │    ├─ Lệch khỏi bãi → TẮT MU Helper → chuột trái đi về bãi   │
- │    └─ Tới bãi       → BẬT MU Helper (Helper lo đánh/nhặt/pot)│
- │  OCR đọc LEVEL                                               │
- │    └─ Đủ level → gõ /reset → đếm đủ mốc → /grandreset        │
- │                → /move về map → chạy lại bãi                 │
- └──────────────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────┐
+ │  Chọn đúng CỬA SỔ MU trong danh sách (hỗ trợ mở nhiều acc)       │
+ │  Đọc TITLE cửa sổ:  [Char: X] [Level: 400 + 451] [RR: 14 / GR:0] │
+ │    └─ Level đủ → gõ /reset → RR đủ mốc → /grandreset             │
+ │                → /move về map → chạy lại bãi                     │
+ │  OCR đọc tọa độ X,Y (góc trên trái: "Lorencia 143,131")          │
+ │    ├─ Lệch khỏi bãi → chuột trái đi về bãi (ma trận isometric)   │
+ │    └─ Tới bãi       → chuột phải đánh skill xoay quanh nhân vật  │
+ │  Canh 2 quả cầu HP/MP theo màu → tự uống pot                     │
+ └──────────────────────────────────────────────────────────────────┘
 ```
+
+### Điểm mạnh với client FASTMU
+- **Level / RR / GR đọc trực tiếp từ title cửa sổ** — chính xác 100%, không cần OCR.
+- **Chọn cửa sổ game từ danh sách** (kèm tên process .exe) — không sợ nhầm khi mở nhiều cửa sổ;
+  mọi vùng OCR/click tính **tương đối theo cửa sổ**, kéo cửa sổ đi đâu vẫn chạy đúng.
 
 ### 2 chế độ đánh
 | Chế độ | Mô tả |
@@ -53,19 +58,21 @@ App này đóng vai **người canh tọa độ + quản lý reset**:
 
 ---
 
-## Thiết lập lần đầu (5 bước)
+## Thiết lập lần đầu (6 bước)
 
-1. **Vùng OCR tọa độ** (tab *Bãi / Tọa độ*): tìm ô hiển thị `X, Y` trên màn hình game.
-   Dùng nút **"Lấy tọa độ chuột"** (tab Chính) lấy góc trên-trái → nhập `L,T,W,H`.
-   Bấm **"Test đọc tọa độ (OCR)"** đến khi đọc đúng.
-2. **Hiệu chỉnh hướng đi**: đứng chỗ trống trong game → bấm **"Hiệu chỉnh hướng đi (auto)"**.
-   App click thử 2 hướng và tự tính ma trận. Bấm **"Lưu config"**.
-3. **Set bãi**: nhập `Tọa độ X/Y đích` + bán kính (tab *Bãi / Tọa độ*).
-4. **Chọn chế độ đánh** (tab *Đánh quái*): để **MU Helper** nếu server có Helper
-   (cấu hình Helper trong game trước — skill, range, nhặt đồ, pot).
-5. **Auto reset** (tab *Reset*, tùy chọn): set vùng OCR level (test bằng nút **"Test đọc level"**),
-   level reset (vd 400), lệnh reset của server bạn (vd `/reset`), lệnh về map (vd `/move tarkan`).
-   Muốn grand reset tự động thì bật thêm và khai số lần reset cần (vd 100).
+1. **Chọn cửa sổ MU** (tab *Chính*): chọn đúng cửa sổ game trong danh sách (có tên .exe kèm theo),
+   bấm **"Làm mới"** nếu chưa thấy. Bấm **"Test title (Level/RR/GR)"** — phải hiện đúng
+   `Char/Level/RR/GR` của bạn.
+2. **Vùng OCR tọa độ** (tab *Bãi / Tọa độ*): mặc định đã set cho client FASTMU 1280×986
+   (ô `Lorencia 143,131` góc trên trái). Bấm **"Test đọc tọa độ (OCR)"** — nếu sai thì chỉnh
+   `L,T,W,H` (tọa độ **tương đối theo cửa sổ game**).
+3. **Hiệu chỉnh hướng đi**: đứng chỗ trống trong game → bấm **"Hiệu chỉnh hướng đi (auto)"**.
+   App click thử 2 hướng, đọc tọa độ đổi thế nào và tự tính ma trận. Bấm **"Lưu config"**.
+4. **Set bãi**: nhập `Tọa độ X/Y đích` + bán kính (tab *Bãi / Tọa độ*).
+5. **Chế độ đánh** (tab *Đánh quái*): để **Chuột phải** (FASTMU đã đóng MU Helper).
+   Chọn sẵn skill muốn đánh trong game (skill đang gắn chuột phải).
+6. **Auto reset** (tab *Reset*): level reset (400), lệnh reset của server (vd `/reset`),
+   lệnh về map sau reset (vd `/move tarkan`). Grand reset: bật + khai mốc RR (app đọc RR từ title).
 
 Xong bấm **F8** để chạy. App chờ 3 giây để bạn đưa chuột vào cửa sổ game.
 

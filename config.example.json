@@ -1,13 +1,13 @@
 {
-  "window_title": "MU",
+  "window_title": "FASTMU",
   "hotkeys": {
     "toggle": "f8",
     "panic": "f9"
   },
   "spot": {
-    "name": "Bai san SS21",
-    "target_x": 130,
-    "target_y": 130,
+    "name": "Bai san",
+    "target_x": 143,
+    "target_y": 131,
     "radius": 10,
     "walk_step_px": 110,
     "walk_click_delay": 0.45,
@@ -15,7 +15,8 @@
   },
   "coord_ocr": {
     "enabled": true,
-    "region": [10, 40, 160, 24],
+    "relative_to_window": true,
+    "region": [140, 4, 110, 24],
     "tesseract_cmd": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
     "read_interval": 1.0
   },
@@ -26,18 +27,18 @@
     "calib_wait": 2.0
   },
   "attack": {
-    "mode": "helper",
+    "mode": "mouse",
     "helper_toggle_key": "home",
     "helper_rearm_delay": 3.0,
     "mouse_radius_px": 170,
     "mouse_interval": 0.5,
     "mouse_angles": 8,
     "pickup_key": "space",
-    "pickup_interval": 0
+    "pickup_interval": 1.5
   },
   "reset": {
-    "enabled": false,
-    "level_region": [400, 10, 90, 22],
+    "enabled": true,
+    "level_region": [430, 4, 90, 24],
     "reset_level": 400,
     "reset_command": "/reset",
     "check_interval": 20.0,
@@ -49,13 +50,14 @@
     "resets_done": 0
   },
   "potions": {
-    "enabled": false,
+    "enabled": true,
+    "relative_to_window": true,
     "hp_key": "q",
     "mp_key": "w",
-    "hp_bar": {"x": 40, "y": 700, "threshold": 0.55},
-    "mp_bar": {"x": 40, "y": 720, "threshold": 0.30},
-    "full_color": [180, 40, 40],
-    "empty_color": [60, 20, 20],
+    "hp_bar": {"x": 377, "y": 900, "threshold": 0.55,
+               "full": [170, 40, 35], "empty": [40, 12, 12]},
+    "mp_bar": {"x": 887, "y": 900, "threshold": 0.30,
+               "full": [45, 75, 175], "empty": [12, 20, 55]},
     "check_interval": 0.4,
     "pot_cooldown": 0.6
   },
