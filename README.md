@@ -17,7 +17,8 @@ Dữ liệu gốc được trích từ file Excel *"Phả đồ chi họ Phạm 
 ## Cấu hình sẵn trong repo
 
 - **Script ID (GAS)**: `15XwGNzoptOO8D6VcH4G1hFV0fWkdWfdz8aF6T0YqDlVYdC-VLlDWAVbd` — đã khai báo trong `.clasp.json`.
-- **Database (Google Sheet ID)**: `12E1CJQdwsYrTvlXrBYprtBQqZNjDGVpcRXjbFxc2GlQ` — đã khai báo trong hằng `SPREADSHEET_ID` ở đầu `Code.gs`. Nếu sheet `GiaPha` trong file này còn trống, app sẽ tự đổ dữ liệu gốc từ phả đồ vào lần chạy đầu tiên.
+- **Database (Google Sheet)**: `SPREADSHEET_ID` ở đầu `Code.gs` đang để **trống** — app tự tạo một Spreadsheet riêng trong Drive khi chạy lần đầu. (Sheet `12E1CJQdwsYrTvlXrBYprtBQqZNjDGVpcRXjbFxc2GlQ` từng được thử gán cứng nhưng thuộc tài khoản khác, script không có quyền ghi — nên đã bỏ, xem lại lịch sử version nếu cần đổi.)
+- **GitHub Pages**: `https://monsterph6.github.io/Monsterph6/` (nhánh `gh-pages`) là một **vỏ PWA tĩnh** — trang chỉ chứa `index.html` + `manifest.json` + `sw.js` + icon, nhúng web app GAS thật sự bên trong qua `<iframe>`. Xem mục **"Kết nối GitHub Pages ↔ GAS"** bên dưới trước khi tạo deployment mới.
 
 ## Cách 1 — Đẩy code lên GAS bằng clasp (khuyên dùng)
 
@@ -32,6 +33,29 @@ clasp push -f        # đẩy Code.gs, SeedData.gs, Index.html, appsscript.json 
 > Nếu `clasp push` báo lỗi *"User has not enabled the Apps Script API"*: mở <https://script.google.com/home/usersettings>, bật **Google Apps Script API**, chờ ~1 phút rồi chạy lại.
 
 Sau khi push xong, mở <https://script.google.com> → dự án của bạn → **Triển khai** → **Tùy chọn triển khai mới** → **Ứng dụng web** (xem bước 3–4 bên dưới).
+
+## Kết nối GitHub Pages ↔ GAS — QUY TẮC BẮT BUỘC khi deploy
+
+`https://monsterph6.github.io/Monsterph6/` (nhánh `gh-pages`) là một PWA shell tĩnh — file
+`index.html` trong đó nhúng thẳng URL của **một deployment GAS cụ thể** qua `<iframe>`:
+
+```
+https://script.google.com/macros/s/AKfycbwj0feG3ubQU--ls_nLP8C2w-FQkx2Lx2MbeoeD50vEJVmbW7hpjhtafl2_1CFslwGT/exec
+```
+
+Deployment ID này (`AKfycbwj0feG...`) **phải giữ nguyên vĩnh viễn** — mỗi lần đưa code mới lên GAS,
+**không được tạo deployment mới** (`clasp deploy` không kèm `-i`), vì sẽ sinh ra URL khác và làm
+GitHub Pages bị kẹt ở bản cũ. Luôn luôn cập nhật **vào đúng ID cũ**:
+
+```bash
+clasp push -f
+clasp deploy -i AKfycbwj0feG3ubQU--ls_nLP8C2w-FQkx2Lx2MbeoeD50vEJVmbW7hpjhtafl2_1CFslwGT \
+  --description "Mô tả ngắn thay đổi lần này"
+```
+
+Nhờ vậy URL nhúng trong `gh-pages/index.html` không bao giờ cần sửa lại — trang GitHub Pages
+tự động lấy đúng bản mới nhất mỗi lần build lại. Nếu vô tình đã tạo deployment mới (lỡ quên
+`-i`), chạy `clasp deployments` để tìm ID thừa và xoá bằng `clasp undeploy <deploymentId>`.
 
 ## Cách 2 — Dán tay (khoảng 5 phút)
 
