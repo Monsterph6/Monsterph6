@@ -165,10 +165,17 @@ function getFamilyData() {
         });
         return p;
       });
+    var upcomingGio = [];
+    try {
+      upcomingGio = upcomingGioList_(60);
+    } catch (eGio) {
+      // Không để lỗi tính lịch giỗ làm hỏng cả trang — bỏ qua, coi như không có ai sắp giỗ.
+    }
     return {
       title: GIAPHA_TITLE,
       sheetUrl: ss.getUrl(),
-      persons: persons
+      persons: persons,
+      upcomingGio: upcomingGio
     };
   } catch (e) {
     return { error: true, message: 'Lỗi server: ' + (e && e.message ? e.message : String(e)) };

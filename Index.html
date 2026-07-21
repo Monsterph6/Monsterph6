@@ -60,6 +60,17 @@
   }
   .tab.active { background: var(--nen); color: var(--do); font-weight: 700; }
 
+  /* ===== Thông báo sắp đến ngày giỗ ===== */
+  #upcomingBanner {
+    background: var(--vang); color: #3c2b00; font-size: 13px; font-weight: 600;
+    padding: 8px 16px; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 6px 4px; text-align: center; border-bottom: 2px solid var(--do-dam);
+  }
+  #upcomingBanner .ub-item { cursor: pointer; white-space: nowrap; }
+  #upcomingBanner .ub-item:hover { text-decoration: underline; }
+  #upcomingBanner .ub-sep { opacity: .5; }
+  #upcomingBanner .ub-more { font-style: italic; }
+
   /* ===== Vùng nội dung ===== */
   .view { display: none; }
   .view.active { display: block; }
@@ -272,6 +283,8 @@
   </div>
 </header>
 
+<div id="upcomingBanner" style="display:none"></div>
+
 <div id="loading">⏳ Đang tải dữ liệu gia phả...</div>
 
 <!-- Nền ảnh mẫu gia phả + lớp phủ nội dung họ Phạm (chỉ hiện khi in phả đồ) -->
@@ -307,7 +320,7 @@
 <div id="toast"></div>
 
 <script>
-  var DATA = { title: '', sheetUrl: '', persons: [] };
+  var DATA = { title: '', sheetUrl: '', persons: [], upcomingGio: [] };
   var byId = {};          // ID -> person
   var childrenOf = {};    // ID cha -> [con]
   var spousesOf = {};     // ID -> [vợ/chồng]
@@ -370,6 +383,23 @@
     renderTree();
     renderList();
     renderGio();
+    renderUpcomingBanner();
+  }
+
+  // ============ Thông báo sắp đến ngày giỗ ============
+  function renderUpcomingBanner() {
+    var box = document.getElementById('upcomingBanner');
+    var list = (DATA.upcomingGio || []).filter(function (x) { return x.conLai <= 14; });
+    if (!list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    var h = list.slice(0, 3).map(function (x) {
+      var khi = x.conLai === 0 ? 'HÔM NAY' : (x.conLai === 1 ? 'ngày mai' : 'còn ' + x.conLai + ' ngày');
+      return '<span class="ub-item" onclick="openDetail(' + x.id + ')">🔔 <b>' + esc(x.ten) + '</b>' +
+        (x.chucDanh ? ' (' + esc(x.chucDanh) + ')' : '') +
+        ' — giỗ ' + esc(x.amLich) + ' âm (' + esc(x.duongLich) + ') — <b>' + khi + '</b></span>';
+    }).join('<span class="ub-sep">·</span>');
+    if (list.length > 3) h += '<span class="ub-sep">·</span><span class="ub-item ub-more" onclick="switchView(\'gioView\')">+' + (list.length - 3) + ' người khác sắp giỗ</span>';
+    box.innerHTML = h;
+    box.style.display = 'flex';
   }
 
   // ============ Phả đồ ============
@@ -530,11 +560,24 @@
     return m ? { d: +m[1], m: +m[2] } : null;
   }
   function renderGio() {
+    var upcoming = DATA.upcomingGio || [];
+    var h = '';
+    if (upcoming.length) {
+      h += '<div class="doi-block"><h2>🔔 Sắp đến ngày giỗ (trong 60 ngày tới)</h2>';
+      h += '<table><tr><th>Còn</th><th>Họ tên</th><th>Ngày âm</th><th>Ngày dương tương ứng</th><th>Chức danh</th></tr>';
+      upcoming.forEach(function (x) {
+        var khi = x.conLai === 0 ? 'Hôm nay' : (x.conLai === 1 ? 'Ngày mai' : x.conLai + ' ngày');
+        h += '<tr><td><b>' + esc(khi) + '</b></td>' +
+          '<td><span class="link" onclick="openDetail(' + x.id + ')">' + esc(x.ten) + '</span></td>' +
+          '<td>' + esc(x.amLich) + '</td><td>' + esc(x.duongLich) + '</td><td>' + esc(x.chucDanh) + '</td></tr>';
+      });
+      h += '</table></div>';
+    }
     var rows = DATA.persons
       .map(function (p) { return { p: p, g: parseGio(p.NgayGio) }; })
       .filter(function (x) { return x.g; })
       .sort(function (a, b) { return (a.g.m - b.g.m) || (a.g.d - b.g.d); });
-    var h = '<div class="doi-block"><h2>🕯 Lịch giỗ trong năm (âm lịch) — ' + rows.length + ' cụ</h2>';
+    h += '<div class="doi-block"><h2>🕯 Lịch giỗ trong năm (âm lịch) — ' + rows.length + ' cụ</h2>';
     h += '<table><tr><th>Ngày (ÂL)</th><th>Họ tên</th><th>Đời</th><th>Chức danh</th></tr>';
     rows.forEach(function (x) {
       h += '<tr><td><b>' + x.g.d + '/' + x.g.m + '</b></td>' +
