@@ -408,8 +408,18 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
   }
+  // spousesOf[X] chỉ gom những người có VoChongCuaID trỏ THẲNG vào X (một chiều).
+  // Nếu chính X là người được thêm dạng "vợ/chồng của ai đó" thì X lại có
+  // VoChongCuaID trỏ đi, không nằm trong spousesOf[X] — nên phải gộp cả 2 chiều
+  // thì mới chắc chắn lấy đủ vợ/chồng của X trong mọi trường hợp thêm dữ liệu.
+  function allSpousesOf_(p) {
+    var list = (spousesOf[p.ID] || []).slice();
+    var vc = byId[Number(p.VoChongCuaID)];
+    if (vc && list.indexOf(vc) === -1) list.push(vc);
+    return list;
+  }
   function cardHtml(p, isLeaf) {
-    var spouses = spousesOf[p.ID] || [];
+    var spouses = allSpousesOf_(p);
     var cls = 'card ' + (p.GioiTinh === 'Nữ' ? 'nu ' : '') + (isLeaf ? 'leaf' : '');
     var h = '<div class="' + cls + '" data-id="' + p.ID + '" data-doi="' + esc(p.Doi) + '" onclick="openDetail(' + p.ID + ');event.stopPropagation()">';
     h += '<span class="doi-tag">Đời ' + esc(p.Doi) + '</span>';
@@ -428,7 +438,7 @@
   // trong cùng 1 thẻ chứ không phải node riêng, nên "+Thêm con" bấm từ bên nào cũng phải ra cùng chỗ.
   function allChildrenOf_(p) {
     var kids = (childrenOf[p.ID] || []).slice();
-    (spousesOf[p.ID] || []).forEach(function (s) {
+    allSpousesOf_(p).forEach(function (s) {
       (childrenOf[s.ID] || []).forEach(function (k) {
         if (kids.indexOf(k) === -1) kids.push(k);
       });
@@ -441,7 +451,7 @@
     var cha = byId[Number(p.ChaID)];
     if (!cha) return [];
     var list = [cha];
-    (spousesOf[cha.ID] || []).forEach(function (s) {
+    allSpousesOf_(cha).forEach(function (s) {
       if (list.indexOf(s) === -1) list.push(s);
     });
     return list;
