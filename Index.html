@@ -447,7 +447,7 @@
     h += '<div class="info-line"><b>' + esc(p.HoTen) + '</b>' + (p.GioiTinh ? ' (' + esc(p.GioiTinh) + ')' : '') + ' — ' + esc(doiLabel(Number(p.Doi))) + '</div>';
     if (p.ChucDanh) h += '<div class="info-line">Chức danh: <b>' + esc(p.ChucDanh) + '</b></div>';
     if (p.NgayGio) h += '<div class="info-line">🕯 Ngày giỗ: <b>' + esc(p.NgayGio) + '</b> (âm lịch)</div>';
-    if (p.NamSinh || p.NamMat) h += '<div class="info-line">Năm sinh — mất: ' + esc(p.NamSinh || '?') + ' — ' + esc(p.NamMat || '?') + '</div>';
+    if (p.NamSinh || p.NamMat) h += '<div class="info-line">Sinh — mất: ' + esc(p.NamSinh || '?') + ' — ' + esc(p.NamMat || '?') + '</div>';
     if (cha) h += '<div class="info-line">Con của: <span class="link" onclick="openDetail(' + cha.ID + ')">' + esc(cha.HoTen) + '</span></div>';
     if (vc) h += '<div class="info-line">' + (p.GioiTinh === 'Nam' ? 'Chồng' : 'Vợ') + ' của: <span class="link" onclick="openDetail(' + vc.ID + ')">' + esc(vc.HoTen) + '</span></div>';
     if (sps.length) h += '<div class="info-line">Vợ/chồng: ' + sps.map(function (s) { return '<span class="link" onclick="openDetail(' + s.ID + ')">' + esc(s.HoTen) + '</span>'; }).join(', ') + '</div>';
@@ -483,8 +483,8 @@
     h += '<div class="field"><label>Ngày giỗ (ÂL, vd 18/12)</label><input name="NgayGio" value="' + esc(p.NgayGio || '') + '"></div>';
     h += '<div class="field"><label>Thứ tự anh chị em</label><input name="ThuTu" type="number" min="1" value="' + esc(p.ThuTu || '') + '"></div>';
     h += '</div><div class="row2">';
-    h += '<div class="field"><label>Năm sinh</label><input name="NamSinh" value="' + esc(p.NamSinh || '') + '"></div>';
-    h += '<div class="field"><label>Năm mất</label><input name="NamMat" value="' + esc(p.NamMat || '') + '"></div>';
+    h += '<div class="field"><label>Ngày/năm sinh (vd 12/8/1950)</label><input name="NamSinh" value="' + esc(p.NamSinh || '') + '"></div>';
+    h += '<div class="field"><label>Ngày/năm mất</label><input name="NamMat" value="' + esc(p.NamMat || '') + '"></div>';
     h += '</div>';
     h += '<div class="field"><label>Chức danh (vd: Chi trưởng, Tổ cô...)</label><input name="ChucDanh" value="' + esc(p.ChucDanh || '') + '"></div>';
     h += '<div class="field"><label>Ghi chú</label><textarea name="GhiChu">' + esc(p.GhiChu || '') + '</textarea></div>';

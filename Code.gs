@@ -70,11 +70,29 @@ function getSheet_() {
   return sheet;
 }
 
+/**
+ * Các cột phải giữ nguyên dạng chữ (Plain text), nếu không Google Sheets sẽ
+ * tự đổi "18/12" hay "12/8/1950" thành kiểu ngày tháng làm hiển thị sai.
+ */
+var TEXT_COLUMNS = ['NgayGio', 'NamSinh', 'NamMat'];
+
+/** Ép định dạng chữ cho các cột ngày trong vùng dòng chỉ định. */
+function forceTextFormat_(sheet, headers, startRow, numRows) {
+  TEXT_COLUMNS.forEach(function (name) {
+    var col = headers.indexOf(name) + 1;
+    if (col > 0 && numRows > 0) {
+      sheet.getRange(startRow, col, numRows, 1).setNumberFormat('@');
+    }
+  });
+}
+
 /** Đổ dữ liệu gốc vào một sheet trống. */
 function seedSheet_(sheet) {
   sheet.clear();
   sheet.getRange(1, 1, 1, SEED_HEADERS.length).setValues([SEED_HEADERS])
     .setFontWeight('bold').setBackground('#7b1e1e').setFontColor('#ffffff');
+  // Ép cột ngày về dạng chữ TRƯỚC khi ghi, phủ cả các dòng sẽ thêm tay sau này.
+  forceTextFormat_(sheet, SEED_HEADERS, 2, Math.max(sheet.getMaxRows() - 1, SEED_DATA.length));
   if (SEED_DATA.length) {
     sheet.getRange(2, 1, SEED_DATA.length, SEED_HEADERS.length).setValues(SEED_DATA);
   }
@@ -85,13 +103,20 @@ function seedSheet_(sheet) {
 /** Đọc toàn bộ dữ liệu — trả về cho giao diện. */
 function getFamilyData() {
   var sheet = getSheet_();
-  var values = sheet.getDataRange().getValues();
+  // Dùng getDisplayValues() để nhận đúng chuỗi như Sheet hiển thị:
+  // ô kiểu ngày tháng không bị biến thành "Sat Dec 18 1899 ..." hay lệch múi giờ.
+  var values = sheet.getDataRange().getDisplayValues();
   var headers = values.shift() || [];
   var persons = values
     .filter(function (row) { return row[0] !== '' && row[0] !== null; })
     .map(function (row) {
       var p = {};
       headers.forEach(function (h, i) { p[h] = row[i]; });
+      // Ô ngày giỗ từng bị Sheets đổi thành kiểu ngày sẽ hiển thị kèm năm thừa
+      // (vd "18/12/2026") — cắt bỏ phần năm, giữ đúng "ngày/tháng" âm lịch.
+      if (p.NgayGio) {
+        p.NgayGio = String(p.NgayGio).replace(/^(\d{1,2}\/\d{1,2})\/\d{4}$/, '$1');
+      }
       return p;
     });
   return {
@@ -135,10 +160,11 @@ function savePerson(person) {
       return v === undefined || v === null ? '' : v;
     });
     if (rowIndex === -1) {
-      sheet.appendRow(row);
-    } else {
-      sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row]);
+      rowIndex = values.length + 1;
     }
+    // Ép cột ngày của dòng này về dạng chữ trước khi ghi, tránh Sheets tự đổi thành kiểu ngày.
+    forceTextFormat_(sheet, headers, rowIndex, 1);
+    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row]);
     return getFamilyData();
   } finally {
     lock.releaseLock();
