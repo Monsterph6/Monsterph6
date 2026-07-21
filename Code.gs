@@ -18,12 +18,42 @@ var PROP_SS_ID = 'GIAPHA_SPREADSHEET_ID';
 var SPREADSHEET_ID = '';
 
 /** Điểm vào của web app. */
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.diag === '1') {
+    return ContentService.createTextOutput(JSON.stringify(diagNgayGio_(), null, 2))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
     .setTitle('Gia phả — Chi họ Phạm Hiếu')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * CHẨN ĐOÁN — liệt kê các ô NgayGio đang bị Sheets tự nhận dạng thành kiểu
+ * ngày tháng và có nguy cơ bị đảo ngày/tháng (cả 2 số đều ≤ 12, ví dụ 2/5).
+ * Truy cập bằng cách thêm ?diag=1 vào cuối URL web app.
+ */
+function diagNgayGio_() {
+  var sheet = getSheet_();
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var idCol = headers.indexOf('ID');
+  var nameCol = headers.indexOf('HoTen');
+  var gioCol = headers.indexOf('NgayGio');
+  var tz = Session.getScriptTimeZone();
+  var suspect = [];
+  var allDates = [];
+  for (var r = 1; r < values.length; r++) {
+    var v = values[r][gioCol];
+    if (!(v instanceof Date)) continue;
+    var d = v.getDate(), m = v.getMonth() + 1;
+    var info = { id: values[r][idCol], ten: values[r][nameCol], formatted_ddMM: Utilities.formatDate(v, tz, 'dd/MM') };
+    allDates.push(info);
+    if (d <= 12 && m <= 12) suspect.push(info); // cả 2 số ≤12 -> có thể đã bị Sheets đảo ngày/tháng
+  }
+  return { timeZone: tz, tongSoONgayKieuDate: allDates.length, canhBao_coTheBiDaoNgayThang: suspect };
 }
 
 /** Lấy (hoặc tạo lần đầu) spreadsheet chứa dữ liệu. */
@@ -70,11 +100,30 @@ function getSheet_() {
   return sheet;
 }
 
+/**
+ * Các cột phải giữ nguyên dạng chữ (Plain text) — nếu không, Google Sheets sẽ tự nhận
+ * dạng "2/5" hay "12/8" là kiểu ngày tháng, và với cặp số đều ≤12 có thể tự đảo
+ * ngược ngày/tháng theo locale của Sheet, làm sai hẳn ngày giỗ/năm sinh/năm mất.
+ */
+var TEXT_COLUMNS = ['NgayGio', 'NamSinh', 'NamMat'];
+
+/** Ép định dạng chữ cho các cột ngày trong vùng dòng chỉ định. */
+function forceTextFormat_(sheet, headers, startRow, numRows) {
+  TEXT_COLUMNS.forEach(function (name) {
+    var col = headers.indexOf(name) + 1;
+    if (col > 0 && numRows > 0) {
+      sheet.getRange(startRow, col, numRows, 1).setNumberFormat('@');
+    }
+  });
+}
+
 /** Đổ dữ liệu gốc vào một sheet trống. */
 function seedSheet_(sheet) {
   sheet.clear();
   sheet.getRange(1, 1, 1, SEED_HEADERS.length).setValues([SEED_HEADERS])
     .setFontWeight('bold').setBackground('#7b1e1e').setFontColor('#ffffff');
+  // Ép định dạng chữ TRƯỚC khi ghi dữ liệu, phủ luôn các dòng sẽ thêm tay sau này.
+  forceTextFormat_(sheet, SEED_HEADERS, 2, Math.max(sheet.getMaxRows() - 1, SEED_DATA.length));
   if (SEED_DATA.length) {
     sheet.getRange(2, 1, SEED_DATA.length, SEED_HEADERS.length).setValues(SEED_DATA);
   }
@@ -161,10 +210,11 @@ function savePerson(person) {
         return v === undefined || v === null ? '' : v;
       });
       if (rowIndex === -1) {
-        sheet.appendRow(row);
-      } else {
-        sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row]);
+        rowIndex = values.length + 1;
       }
+      // Ép định dạng chữ cho dòng này TRƯỚC khi ghi, tránh Sheets tự đổi ngày thành kiểu Date.
+      forceTextFormat_(sheet, headers, rowIndex, 1);
+      sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row]);
       return getFamilyData();
     } finally {
       lock.releaseLock();
