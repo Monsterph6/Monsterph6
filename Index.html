@@ -547,7 +547,8 @@
     h += '<div class="info-line"><b>' + esc(p.HoTen) + '</b>' + (p.GioiTinh ? ' (' + esc(p.GioiTinh) + ')' : '') + ' — ' + esc(doiLabel(Number(p.Doi))) + '</div>';
     if (p.ChucDanh) h += '<div class="info-line">Chức danh: <b>' + esc(p.ChucDanh) + '</b></div>';
     if (p.NgayGio) h += '<div class="info-line">🕯 Ngày giỗ: <b>' + esc(p.NgayGio) + '</b> (âm lịch)</div>';
-    if (p.NamSinh || p.NamMat) h += '<div class="info-line">Năm sinh — mất: ' + esc(p.NamSinh || '?') + ' — ' + esc(p.NamMat || '?') + '</div>';
+    if (p.NamSinh) h += '<div class="info-line">🌱 Năm sinh: <b>' + esc(p.NamSinh) + '</b></div>';
+    if (p.NamMat) h += '<div class="info-line">🕊 Năm mất: <b>' + esc(p.NamMat) + '</b></div>';
     if (cha) h += '<div class="info-line">Con của: <span class="link" onclick="openDetail(' + cha.ID + ')">' + esc(cha.HoTen) + '</span></div>';
     if (vc) h += '<div class="info-line">' + (p.GioiTinh === 'Nam' ? 'Chồng' : 'Vợ') + ' của: <span class="link" onclick="openDetail(' + vc.ID + ')">' + esc(vc.HoTen) + '</span></div>';
     if (sps.length) h += '<div class="info-line">Vợ/chồng: ' + sps.map(function (s) { return '<span class="link" onclick="openDetail(' + s.ID + ')">' + esc(s.HoTen) + '</span>'; }).join(', ') + '</div>';
