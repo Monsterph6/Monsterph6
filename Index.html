@@ -405,6 +405,17 @@
     });
     return kids.sort(function (a, b) { return (Number(a.ThuTu) || 99) - (Number(b.ThuTu) || 99) || a.ID - b.ID; });
   }
+  // ChaID chỉ lưu MỘT người (cha hoặc mẹ, tuỳ lúc thêm) — vợ/chồng của người đó
+  // (nếu có) chính là phụ huynh còn lại, nên gộp cả hai vào đây để hiển thị "Con của".
+  function parentsOf_(p) {
+    var cha = byId[Number(p.ChaID)];
+    if (!cha) return [];
+    var list = [cha];
+    (spousesOf[cha.ID] || []).forEach(function (s) {
+      if (list.indexOf(s) === -1) list.push(s);
+    });
+    return list;
+  }
   function nodeHtml(p) {
     var kids = allChildrenOf_(p);
     var h = '<li>' + cardHtml(p, kids.length === 0);
@@ -499,9 +510,9 @@
       h += '<table><tr><th>Họ tên</th><th>Giới tính</th><th>Quan hệ</th><th>Ngày giỗ (ÂL)</th><th>Chức danh / Ghi chú</th></tr>';
       byDoi[d].sort(function (a, b) { return a.ID - b.ID; }).forEach(function (p) {
         var qh = '';
-        var cha = byId[Number(p.ChaID)];
+        var parents = parentsOf_(p);
         var vc = byId[Number(p.VoChongCuaID)];
-        if (cha) qh = 'Con cụ ' + cha.HoTen;
+        if (parents.length) qh = 'Con cụ ' + parents.map(function (pr) { return pr.HoTen; }).join(' và ');
         else if (vc) qh = (p.GioiTinh === 'Nam' ? 'Chồng cụ ' : 'Vợ cụ ') + vc.HoTen;
         h += '<tr><td><span class="link" onclick="openDetail(' + p.ID + ')">' + esc(p.HoTen) + '</span></td>' +
           '<td>' + esc(p.GioiTinh) + '</td><td>' + esc(qh) + '</td>' +
@@ -539,7 +550,7 @@
   function openDetail(id) {
     var p = byId[id];
     if (!p) return;
-    var cha = byId[Number(p.ChaID)];
+    var parents = parentsOf_(p);
     var vc = byId[Number(p.VoChongCuaID)];
     var kids = allChildrenOf_(p);
     var sps = spousesOf[id] || [];
@@ -549,7 +560,9 @@
     if (p.NgayGio) h += '<div class="info-line">🕯 Ngày giỗ: <b>' + esc(p.NgayGio) + '</b> (âm lịch)</div>';
     if (p.NamSinh) h += '<div class="info-line">🌱 Năm sinh: <b>' + esc(p.NamSinh) + '</b></div>';
     if (p.NamMat) h += '<div class="info-line">🕊 Năm mất: <b>' + esc(p.NamMat) + '</b></div>';
-    if (cha) h += '<div class="info-line">Con của: <span class="link" onclick="openDetail(' + cha.ID + ')">' + esc(cha.HoTen) + '</span></div>';
+    if (parents.length) h += '<div class="info-line">Con của: ' + parents.map(function (pr) {
+      return '<span class="link" onclick="openDetail(' + pr.ID + ')">' + esc(pr.HoTen) + '</span>';
+    }).join(' và ') + '</div>';
     if (vc) h += '<div class="info-line">' + (p.GioiTinh === 'Nam' ? 'Chồng' : 'Vợ') + ' của: <span class="link" onclick="openDetail(' + vc.ID + ')">' + esc(vc.HoTen) + '</span></div>';
     if (sps.length) h += '<div class="info-line">Vợ/chồng: ' + sps.map(function (s) { return '<span class="link" onclick="openDetail(' + s.ID + ')">' + esc(s.HoTen) + '</span>'; }).join(', ') + '</div>';
     if (kids.length) h += '<div class="info-line">Con (' + kids.length + '): ' + kids.map(function (k) { return '<span class="link" onclick="openDetail(' + k.ID + ')">' + esc(k.HoTen) + '</span>'; }).join(', ') + '</div>';
